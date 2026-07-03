@@ -1,0 +1,15 @@
+# Credenciales locales
+.streamlit/secrets.toml
+secrets.toml
+.env
+
+# Caché de Python y Streamlit
+__pycache__/
+*.py[cod]
+.streamlit/cache/
+
+# Entornos y archivos del sistema
+.venv/
+venv/
+.DS_Store
+Thumbs.db

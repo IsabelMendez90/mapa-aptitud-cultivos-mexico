@@ -1754,6 +1754,7 @@ def inicializar_estado():
         "municipio_objetivo_integrado": None,
         "lugar_mencionado_integrado": None,
         "requiere_ubicacion_integrada": False,
+        "consulta_pendiente_integrada": None,
     }
 
     for key, value in defaults.items():
@@ -1880,6 +1881,8 @@ def detectar_color_pregunta(pregunta, lectura, vista):
 
 def procesar_pregunta_chat(pregunta, cultivos_disponibles):
     st.session_state["requiere_ubicacion_integrada"] = False
+    consulta_pendiente = st.session_state.get("consulta_pendiente_integrada")
+    pregunta_para_contexto = pregunta
 
     if es_pregunta_identidad(pregunta):
         intencion = {
@@ -1910,9 +1913,48 @@ def procesar_pregunta_chat(pregunta, cultivos_disponibles):
     else:
         intencion = {}
 
-    guardar_ubicacion_desde_intencion(pregunta, intencion)
+    ubicacion_guardada = guardar_ubicacion_desde_intencion(pregunta, intencion)
 
-    if consulta_sitio_sin_ubicacion(pregunta, intencion):
+    # Una respuesta breve como "en Ciudad de México" no repite el cultivo ni
+    # la acción. Si había una consulta esperando ubicación, recuperamos ese
+    # contexto sin reemplazar la ubicación recién detectada.
+    es_continuacion_ubicacion = bool(consulta_pendiente and ubicacion_guardada)
+
+    if es_continuacion_ubicacion:
+        if not intencion.get("cultivo"):
+            intencion["cultivo"] = consulta_pendiente.get("cultivo")
+
+        if intencion.get("accion") in [
+            None,
+            "",
+            "pregunta_general",
+            "mapa_todos_cultivos",
+        ]:
+            intencion["accion"] = consulta_pendiente.get(
+                "accion",
+                "pregunta_general",
+            )
+
+        if intencion.get("modelo") in [None, "", "desconocido"]:
+            intencion["modelo"] = consulta_pendiente.get(
+                "modelo",
+                "desconocido",
+            )
+
+        if intencion.get("sistema") in [None, "", "ninguno", "solo"]:
+            intencion["sistema"] = consulta_pendiente.get(
+                "sistema",
+                "ninguno",
+            )
+
+        pregunta_original = consulta_pendiente.get("pregunta", "")
+        pregunta_para_contexto = (
+            f"{pregunta_original}\n"
+            f"Ubicación proporcionada después: {pregunta}"
+        ).strip()
+        st.session_state["consulta_pendiente_integrada"] = None
+
+    if consulta_sitio_sin_ubicacion(pregunta_para_contexto, intencion):
         st.session_state["requiere_ubicacion_integrada"] = True
 
     cultivo_detectado = intencion.get("cultivo")
@@ -1941,10 +1983,20 @@ def procesar_pregunta_chat(pregunta, cultivos_disponibles):
         escenario = detectar_escenario_pregunta(pregunta, intencion)
         color = detectar_color_pregunta(pregunta, lectura, vista)
 
-        if consulta_pide_recomendacion_local(pregunta, intencion):
+        if consulta_pide_recomendacion_local(
+            pregunta_para_contexto,
+            intencion,
+        ):
             lectura = "aptitud"
-            vista = "todos_cultivos"
-            color = "Mejor opción estimada"
+
+            # Una pregunta abierta requiere el ranking de cultivos. Si el
+            # usuario ya indicó Fresa (u otro cultivo), se conserva ese foco.
+            if cultivo_encontrado is None:
+                vista = "todos_cultivos"
+                color = "Mejor opción estimada"
+            else:
+                vista = "un_cultivo"
+                color = "Índice de aptitud"
 
             if escenario == "solo":
                 escenario = "todos_sistemas"
@@ -1965,13 +2017,22 @@ def procesar_pregunta_chat(pregunta, cultivos_disponibles):
     if cultivo_encontrado is not None:
         st.session_state["cultivo_integrado"] = cultivo_encontrado
 
+    if st.session_state.get("requiere_ubicacion_integrada", False):
+        st.session_state["consulta_pendiente_integrada"] = {
+            "pregunta": pregunta,
+            "accion": intencion.get("accion"),
+            "cultivo": cultivo_encontrado,
+            "modelo": intencion.get("modelo"),
+            "sistema": escenario,
+        }
+
     pregunta_norm = normalizar_texto(pregunta)
 
     if any(p in pregunta_norm for p in ["internet", "web", "busca", "enriquece", "complementa", "ia", "fuente", "fuentes"]):
         intencion["usar_ia_complementaria"] = True
 
     st.session_state["ultima_intencion_integrada"] = intencion
-    st.session_state["ultima_pregunta_integrada"] = pregunta
+    st.session_state["ultima_pregunta_integrada"] = pregunta_para_contexto
     st.session_state["respuesta_pendiente_integrada"] = True
     st.session_state["chat_integrado_historial"].append({"role": "user", "content": pregunta})
 
@@ -2350,7 +2411,13 @@ def generar_respuesta_chat_si_pendiente(
         st.session_state["respuesta_pendiente_integrada"] = False
         return
 
-    if info_ubicacion is not None and ranking_local is not None and not ranking_local.empty and consulta_pide_recomendacion_local(pregunta, intencion):
+    if (
+        vista == "todos_cultivos"
+        and info_ubicacion is not None
+        and ranking_local is not None
+        and not ranking_local.empty
+        and consulta_pide_recomendacion_local(pregunta, intencion)
+    ):
         respuesta = respuesta_recomendacion_local(
             ranking_local=ranking_local,
             info_ubicacion=info_ubicacion,
