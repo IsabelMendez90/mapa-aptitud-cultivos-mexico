@@ -1,0 +1,127 @@
+cultivo_id,nombre_cultivo,archivo_csv,municipios,municipios_cumple_todos,municipios_no_cumple,municipios_sin_datos,porcentaje_municipios_cumple_todos,promedio_cumplimiento_pdf
+acelga,Acelga,data/mapas_pdf_crudo/cultivo_acelga.parquet,2457,87,2370,0,3.5,70.1
+acerola,Acerola,data/mapas_pdf_crudo/cultivo_acerola.parquet,2457,9,2448,0,0.4,72.5
+agave_pulquero,Agave pulquero,data/mapas_pdf_crudo/cultivo_agave_pulquero.parquet,2457,146,2311,0,5.9,69.9
+agave_tequilero,Agave tequilero,data/mapas_pdf_crudo/cultivo_agave_tequilero.parquet,2457,0,2457,0,0.0,77.4
+aguacate,Aguacate,data/mapas_pdf_crudo/cultivo_aguacate.parquet,2457,89,2368,0,3.6,84.1
+ajo,Ajo,data/mapas_pdf_crudo/cultivo_ajo.parquet,2457,4,2453,0,0.2,71.9
+ajonjoli,Ajonjolí,data/mapas_pdf_crudo/cultivo_ajonjoli.parquet,2457,0,2457,0,0.0,60.6
+alcachofa,Alcachofa,data/mapas_pdf_crudo/cultivo_alcachofa.parquet,2457,0,2457,0,0.0,69.9
+algodon,Algodón,data/mapas_pdf_crudo/cultivo_algodon.parquet,2457,299,2158,0,12.2,82.0
+almendro,Almendro,data/mapas_pdf_crudo/cultivo_almendro.parquet,2457,1023,1434,0,41.6,87.1
+amaranto,Amaranto,data/mapas_pdf_crudo/cultivo_amaranto.parquet,2457,2208,249,0,89.9,98.3
+anis,Anís,data/mapas_pdf_crudo/cultivo_anis.parquet,2457,845,1612,0,34.4,67.2
+apio,Apio,data/mapas_pdf_crudo/cultivo_apio.parquet,2457,0,2457,0,0.0,66.4
+arandano,Arándano,data/mapas_pdf_crudo/cultivo_arandano.parquet,2457,0,2457,0,0.0,62.0
+arroz,Arroz,data/mapas_pdf_crudo/cultivo_arroz.parquet,2457,310,2147,0,12.6,79.3
+ave_de_paraiso,Ave de paraíso,data/mapas_pdf_crudo/cultivo_ave_de_paraiso.parquet,2457,0,2457,0,0.0,71.5
+avellana,Avellana,data/mapas_pdf_crudo/cultivo_avellana.parquet,2457,43,2414,0,1.8,70.2
+avena,Avena,data/mapas_pdf_crudo/cultivo_avena.parquet,2457,0,2457,0,0.0,79.0
+berenjena,Berenjena,data/mapas_pdf_crudo/cultivo_berenjena.parquet,2457,113,2344,0,4.6,75.1
+betabel,Betabel,data/mapas_pdf_crudo/cultivo_betabel.parquet,2457,256,2201,0,10.4,81.5
+brocoli,Brócoli,data/mapas_pdf_crudo/cultivo_brocoli.parquet,2457,0,2457,0,0.0,75.6
+cacahuate,Cacahuate,data/mapas_pdf_crudo/cultivo_cacahuate.parquet,2457,13,2444,0,0.5,70.3
+cacao,Cacao,data/mapas_pdf_crudo/cultivo_cacao.parquet,2457,0,2457,0,0.0,49.2
+cafe,Café,data/mapas_pdf_crudo/cultivo_cafe.parquet,2457,0,2457,0,0.0,71.8
+calabacita,Calabacita,data/mapas_pdf_crudo/cultivo_calabacita.parquet,2457,270,2187,0,11.0,83.4
+calabaza,Calabaza,data/mapas_pdf_crudo/cultivo_calabaza.parquet,2457,663,1794,0,27.0,87.0
+camote,Camote,data/mapas_pdf_crudo/cultivo_camote.parquet,2457,15,2442,0,0.6,69.9
+cana_de_azucar,Caña de azúcar,data/mapas_pdf_crudo/cultivo_cana_de_azucar.parquet,2457,0,2457,0,0.0,62.3
+canela,Canela,data/mapas_pdf_crudo/cultivo_canela.parquet,2457,0,2457,0,0.0,18.5
+canola,Canola,data/mapas_pdf_crudo/cultivo_canola.parquet,2457,0,2457,0,0.0,71.7
+carambolo,Carambolo,data/mapas_pdf_crudo/cultivo_carambolo.parquet,2457,238,2219,0,9.7,74.9
+cartamo,Cártamo,data/mapas_pdf_crudo/cultivo_cartamo.parquet,2457,0,2457,0,0.0,75.9
+cebada,Cebada,data/mapas_pdf_crudo/cultivo_cebada.parquet,2457,0,2457,0,0.0,74.3
+cebolla,Cebolla,data/mapas_pdf_crudo/cultivo_cebolla.parquet,2457,105,2352,0,4.3,76.4
+cempazuchitl,Cempazúchitl,data/mapas_pdf_crudo/cultivo_cempazuchitl.parquet,2457,0,2457,0,0.0,71.0
+chabacano,Chabacano,data/mapas_pdf_crudo/cultivo_chabacano.parquet,2457,0,2457,0,0.0,71.4
+chayote,Chayote,data/mapas_pdf_crudo/cultivo_chayote.parquet,2457,0,2457,0,0.0,73.8
+chia,Chía,data/mapas_pdf_crudo/cultivo_chia.parquet,2457,308,2149,0,12.5,67.5
+chicharo,Chícharo,data/mapas_pdf_crudo/cultivo_chicharo.parquet,2457,0,2457,0,0.0,70.4
+chicozapote,Chicozapote,data/mapas_pdf_crudo/cultivo_chicozapote.parquet,2457,4,2453,0,0.2,64.6
+chile_de_arbol,Chile de árbol,data/mapas_pdf_crudo/cultivo_chile_de_arbol.parquet,2457,0,2457,0,0.0,57.8
+chile_dulce,Chile dulce,data/mapas_pdf_crudo/cultivo_chile_dulce.parquet,2457,184,2273,0,7.5,80.4
+chile_habanero,Chile habanero,data/mapas_pdf_crudo/cultivo_chile_habanero.parquet,2457,0,2457,0,0.0,65.8
+chirimoya,Chirimoya,data/mapas_pdf_crudo/cultivo_chirimoya.parquet,2457,540,1917,0,22.0,85.0
+cilantro,Cilantro,data/mapas_pdf_crudo/cultivo_cilantro.parquet,2457,0,2457,0,0.0,84.9
+ciruela_mexicana,Ciruela mexicana,data/mapas_pdf_crudo/cultivo_ciruela_mexicana.parquet,2457,0,2457,0,0.0,63.7
+ciruelo_europeo,Ciruelo europeo,data/mapas_pdf_crudo/cultivo_ciruelo_europeo.parquet,2457,0,2457,0,0.0,80.3
+cocotero,Cocotero,data/mapas_pdf_crudo/cultivo_cocotero.parquet,2457,5,2452,0,0.2,44.4
+col,Col,data/mapas_pdf_crudo/cultivo_col.parquet,2457,0,2457,0,0.0,79.0
+coliflor,Coliflor,data/mapas_pdf_crudo/cultivo_coliflor.parquet,2457,0,2457,0,0.0,75.4
+durazno,Durazno,data/mapas_pdf_crudo/cultivo_durazno.parquet,2457,0,2457,0,0.0,71.8
+esparrago,Espárrago,data/mapas_pdf_crudo/cultivo_esparrago.parquet,2457,941,1516,0,38.3,88.4
+espinaca,Espinaca,data/mapas_pdf_crudo/cultivo_espinaca.parquet,2457,0,2457,0,0.0,84.2
+frambuesa,Frambuesa,data/mapas_pdf_crudo/cultivo_frambuesa.parquet,2457,0,2457,0,0.0,67.4
+fresa,Fresa,data/mapas_pdf_crudo/cultivo_fresa.parquet,2457,79,2378,0,3.2,76.9
+frijol,Frijol,data/mapas_pdf_crudo/cultivo_frijol.parquet,2457,0,2457,0,0.0,79.3
+garbanzo,Garbanzo,data/mapas_pdf_crudo/cultivo_garbanzo.parquet,2457,204,2253,0,8.3,85.3
+gerbera,Gerbera,data/mapas_pdf_crudo/cultivo_gerbera.parquet,2457,0,2457,0,0.0,73.7
+girasol,Girasol,data/mapas_pdf_crudo/cultivo_girasol.parquet,2457,0,2457,0,0.0,70.4
+gladiola,Gladiola,data/mapas_pdf_crudo/cultivo_gladiola.parquet,2457,1619,838,0,65.9,88.6
+granada,Granada,data/mapas_pdf_crudo/cultivo_granada.parquet,2457,596,1861,0,24.3,82.6
+guanabana,Guanábana,data/mapas_pdf_crudo/cultivo_guanabana.parquet,2457,11,2446,0,0.4,62.3
+guayaba,Guayaba,data/mapas_pdf_crudo/cultivo_guayaba.parquet,2457,39,2418,0,1.6,77.7
+guayaba_fresa,Guayaba fresa,data/mapas_pdf_crudo/cultivo_guayaba_fresa.parquet,2457,0,2457,0,0.0,47.2
+haba,Haba,data/mapas_pdf_crudo/cultivo_haba.parquet,2457,284,2173,0,11.6,87.1
+hierbabuena,Hierbabuena,data/mapas_pdf_crudo/cultivo_hierbabuena.parquet,2457,114,2343,0,4.6,74.7
+higo,Higo,data/mapas_pdf_crudo/cultivo_higo.parquet,2457,345,2112,0,14.0,85.3
+higuerilla,Higuerilla,data/mapas_pdf_crudo/cultivo_higuerilla.parquet,2457,213,2244,0,8.7,79.3
+hule,Hule,data/mapas_pdf_crudo/cultivo_hule.parquet,2457,133,2324,0,5.4,69.3
+jaca,Jaca,data/mapas_pdf_crudo/cultivo_jaca.parquet,2457,12,2445,0,0.5,69.1
+jamaica,Jamaica,data/mapas_pdf_crudo/cultivo_jamaica.parquet,2457,27,2430,0,1.1,77.4
+jatropha,Jatropha,data/mapas_pdf_crudo/cultivo_jatropha.parquet,2457,25,2432,0,1.0,70.6
+jicama,Jícama,data/mapas_pdf_crudo/cultivo_jicama.parquet,2457,2,2455,0,0.1,74.4
+kiwi,Kiwi,data/mapas_pdf_crudo/cultivo_kiwi.parquet,2457,1,2456,0,0.0,67.7
+lechuga,Lechuga,data/mapas_pdf_crudo/cultivo_lechuga.parquet,2457,0,2457,0,0.0,70.4
+lenteja,Lenteja,data/mapas_pdf_crudo/cultivo_lenteja.parquet,2457,0,2457,0,0.0,64.3
+lima,Lima,data/mapas_pdf_crudo/cultivo_lima.parquet,2457,3,2454,0,0.1,66.2
+limon,Limón,data/mapas_pdf_crudo/cultivo_limon.parquet,2457,6,2451,0,0.2,70.7
+litchi,Litchi,data/mapas_pdf_crudo/cultivo_litchi.parquet,2457,356,2101,0,14.5,83.4
+macadamia,Macadamia,data/mapas_pdf_crudo/cultivo_macadamia.parquet,2457,86,2371,0,3.5,71.4
+maiz,Maíz,data/mapas_pdf_crudo/cultivo_maiz.parquet,2457,0,2457,0,0.0,67.8
+mamey,Mamey,data/mapas_pdf_crudo/cultivo_mamey.parquet,2457,14,2443,0,0.6,66.3
+mandarina,Mandarina,data/mapas_pdf_crudo/cultivo_mandarina.parquet,2457,1,2456,0,0.0,58.8
+mango,Mango,data/mapas_pdf_crudo/cultivo_mango.parquet,2457,566,1891,0,23.0,80.7
+mangostan,Mangostán,data/mapas_pdf_crudo/cultivo_mangostan.parquet,2457,0,2457,0,0.0,49.4
+manzano,Manzano,data/mapas_pdf_crudo/cultivo_manzano.parquet,2457,0,2457,0,0.0,74.6
+maracuya,Maracuyá,data/mapas_pdf_crudo/cultivo_maracuya.parquet,2457,24,2433,0,1.0,55.4
+melon,Melón,data/mapas_pdf_crudo/cultivo_melon.parquet,2457,0,2457,0,0.0,51.7
+nanche,Nanche,data/mapas_pdf_crudo/cultivo_nanche.parquet,2457,9,2448,0,0.4,67.0
+naranja,Naranja,data/mapas_pdf_crudo/cultivo_naranja.parquet,2457,222,2235,0,9.0,79.0
+nogal,Nogal,data/mapas_pdf_crudo/cultivo_nogal.parquet,2457,250,2207,0,10.2,69.8
+nopal,Nopal,data/mapas_pdf_crudo/cultivo_nopal.parquet,2457,496,1961,0,20.2,88.2
+okra,Okra,data/mapas_pdf_crudo/cultivo_okra.parquet,2457,474,1983,0,19.3,83.5
+olivo,Olivo,data/mapas_pdf_crudo/cultivo_olivo.parquet,2457,183,2274,0,7.4,84.3
+oregano,Orégano,data/mapas_pdf_crudo/cultivo_oregano.parquet,2457,0,2457,0,0.0,54.2
+palma_de_aceite,Palma de aceite,data/mapas_pdf_crudo/cultivo_palma_de_aceite.parquet,2457,1,2456,0,0.0,46.3
+papa,Papa,data/mapas_pdf_crudo/cultivo_papa.parquet,2457,257,2200,0,10.5,78.3
+papaya,Papaya,data/mapas_pdf_crudo/cultivo_papaya.parquet,2457,706,1751,0,28.7,84.6
+pepino,Pepino,data/mapas_pdf_crudo/cultivo_pepino.parquet,2457,14,2443,0,0.6,74.2
+pera,Pera,data/mapas_pdf_crudo/cultivo_pera.parquet,2457,0,2457,0,0.0,62.8
+perejil,Perejil,data/mapas_pdf_crudo/cultivo_perejil.parquet,2457,0,2457,0,0.0,64.5
+pimienta,Pimienta,data/mapas_pdf_crudo/cultivo_pimienta.parquet,2457,49,2408,0,2.0,62.4
+pina,Piña,data/mapas_pdf_crudo/cultivo_pina.parquet,2457,0,2457,0,0.0,62.8
+pistacho,Pistacho,data/mapas_pdf_crudo/cultivo_pistacho.parquet,2457,33,2424,0,1.3,57.8
+pitahaya,Pitahaya,data/mapas_pdf_crudo/cultivo_pitahaya.parquet,2457,153,2304,0,6.2,71.9
+pitaya,Pitaya,data/mapas_pdf_crudo/cultivo_pitaya.parquet,2457,213,2244,0,8.7,71.8
+platano,Plátano,data/mapas_pdf_crudo/cultivo_platano.parquet,2457,54,2403,0,2.2,67.5
+rabano,Rábano,data/mapas_pdf_crudo/cultivo_rabano.parquet,2457,0,2457,0,0.0,64.4
+rambutan,Rambután,data/mapas_pdf_crudo/cultivo_rambutan.parquet,2457,31,2426,0,1.3,57.1
+rosa,Rosa,data/mapas_pdf_crudo/cultivo_rosa.parquet,2457,1850,607,0,75.3,94.4
+sandia,Sandía,data/mapas_pdf_crudo/cultivo_sandia.parquet,2457,0,2457,0,0.0,64.8
+sorgo,Sorgo,data/mapas_pdf_crudo/cultivo_sorgo.parquet,2457,14,2443,0,0.6,64.6
+soya,Soya,data/mapas_pdf_crudo/cultivo_soya.parquet,2457,0,2457,0,0.0,63.6
+stevia,Stevia,data/mapas_pdf_crudo/cultivo_stevia.parquet,2457,0,2457,0,0.0,59.7
+tabaco,Tabaco,data/mapas_pdf_crudo/cultivo_tabaco.parquet,2457,145,2312,0,5.9,77.4
+tamarindo,Tamarindo,data/mapas_pdf_crudo/cultivo_tamarindo.parquet,2457,974,1483,0,39.6,89.3
+tomate,Tomate,data/mapas_pdf_crudo/cultivo_tomate.parquet,2457,0,2457,0,0.0,69.2
+tomate_de_cascara,Tomate de cáscara,data/mapas_pdf_crudo/cultivo_tomate_de_cascara.parquet,2457,226,2231,0,9.2,65.1
+tomillo,Tomillo,data/mapas_pdf_crudo/cultivo_tomillo.parquet,2457,0,2457,0,0.0,56.3
+toronja,Toronja,data/mapas_pdf_crudo/cultivo_toronja.parquet,2457,11,2446,0,0.4,67.5
+trigo,Trigo,data/mapas_pdf_crudo/cultivo_trigo.parquet,2457,0,2457,0,0.0,69.1
+vainilla,Vainilla,data/mapas_pdf_crudo/cultivo_vainilla.parquet,2457,3,2454,0,0.1,56.5
+vid,Vid,data/mapas_pdf_crudo/cultivo_vid.parquet,2457,271,2186,0,11.0,81.6
+yuca,Yuca,data/mapas_pdf_crudo/cultivo_yuca.parquet,2457,893,1564,0,36.3,89.0
+zanahoria,Zanahoria,data/mapas_pdf_crudo/cultivo_zanahoria.parquet,2457,242,2215,0,9.8,80.8
+zarzamora,Zarzamora,data/mapas_pdf_crudo/cultivo_zarzamora.parquet,2457,0,2457,0,0.0,70.7

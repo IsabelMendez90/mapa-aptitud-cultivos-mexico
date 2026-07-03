@@ -1,0 +1,136 @@
+lectura,vista,nombre_cultivo,escenario_key,escenario,archivo_csv,filas
+pdf,todos_cultivos,Todos los cultivos,pdf,Mejor cultivo según cumplimiento base,data/mapas_integrados/pdf_todos_cultivos.parquet,2457
+aptitud,un_cultivo,Acelga,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/acelga_escenarios.parquet,19656
+aptitud,un_cultivo,Acerola,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/acerola_escenarios.parquet,19656
+aptitud,un_cultivo,Agave pulquero,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/agave_pulquero_escenarios.parquet,19656
+aptitud,un_cultivo,Agave tequilero,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/agave_tequilero_escenarios.parquet,19656
+aptitud,un_cultivo,Aguacate,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/aguacate_escenarios.parquet,19656
+aptitud,un_cultivo,Ajo,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/ajo_escenarios.parquet,19656
+aptitud,un_cultivo,Ajonjolí,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/ajonjoli_escenarios.parquet,19656
+aptitud,un_cultivo,Alcachofa,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/alcachofa_escenarios.parquet,19656
+aptitud,un_cultivo,Algodón,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/algodon_escenarios.parquet,19656
+aptitud,un_cultivo,Almendro,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/almendro_escenarios.parquet,19656
+aptitud,un_cultivo,Amaranto,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/amaranto_escenarios.parquet,19656
+aptitud,un_cultivo,Anís,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/anis_escenarios.parquet,19656
+aptitud,un_cultivo,Apio,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/apio_escenarios.parquet,19656
+aptitud,un_cultivo,Arroz,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/arroz_escenarios.parquet,19656
+aptitud,un_cultivo,Arándano,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/arandano_escenarios.parquet,19656
+aptitud,un_cultivo,Ave de paraíso,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/ave_de_paraiso_escenarios.parquet,19656
+aptitud,un_cultivo,Avellana,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/avellana_escenarios.parquet,19656
+aptitud,un_cultivo,Avena,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/avena_escenarios.parquet,19656
+aptitud,un_cultivo,Berenjena,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/berenjena_escenarios.parquet,19656
+aptitud,un_cultivo,Betabel,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/betabel_escenarios.parquet,19656
+aptitud,un_cultivo,Brócoli,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/brocoli_escenarios.parquet,19656
+aptitud,un_cultivo,Cacahuate,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/cacahuate_escenarios.parquet,19656
+aptitud,un_cultivo,Cacao,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/cacao_escenarios.parquet,19656
+aptitud,un_cultivo,Café,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/cafe_escenarios.parquet,19656
+aptitud,un_cultivo,Calabacita,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/calabacita_escenarios.parquet,19656
+aptitud,un_cultivo,Calabaza,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/calabaza_escenarios.parquet,19656
+aptitud,un_cultivo,Camote,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/camote_escenarios.parquet,19656
+aptitud,un_cultivo,Canela,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/canela_escenarios.parquet,19656
+aptitud,un_cultivo,Canola,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/canola_escenarios.parquet,19656
+aptitud,un_cultivo,Carambolo,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/carambolo_escenarios.parquet,19656
+aptitud,un_cultivo,Caña de azúcar,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/cana_de_azucar_escenarios.parquet,19656
+aptitud,un_cultivo,Cebada,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/cebada_escenarios.parquet,19656
+aptitud,un_cultivo,Cebolla,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/cebolla_escenarios.parquet,19656
+aptitud,un_cultivo,Cempazúchitl,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/cempazuchitl_escenarios.parquet,19656
+aptitud,un_cultivo,Chabacano,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/chabacano_escenarios.parquet,19656
+aptitud,un_cultivo,Chayote,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/chayote_escenarios.parquet,19656
+aptitud,un_cultivo,Chicozapote,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/chicozapote_escenarios.parquet,19656
+aptitud,un_cultivo,Chile de árbol,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/chile_de_arbol_escenarios.parquet,19656
+aptitud,un_cultivo,Chile dulce,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/chile_dulce_escenarios.parquet,19656
+aptitud,un_cultivo,Chile habanero,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/chile_habanero_escenarios.parquet,19656
+aptitud,un_cultivo,Chirimoya,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/chirimoya_escenarios.parquet,19656
+aptitud,un_cultivo,Chía,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/chia_escenarios.parquet,19656
+aptitud,un_cultivo,Chícharo,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/chicharo_escenarios.parquet,19656
+aptitud,un_cultivo,Cilantro,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/cilantro_escenarios.parquet,19656
+aptitud,un_cultivo,Ciruela mexicana,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/ciruela_mexicana_escenarios.parquet,19656
+aptitud,un_cultivo,Ciruelo europeo,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/ciruelo_europeo_escenarios.parquet,19656
+aptitud,un_cultivo,Cocotero,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/cocotero_escenarios.parquet,19656
+aptitud,un_cultivo,Col,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/col_escenarios.parquet,19656
+aptitud,un_cultivo,Coliflor,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/coliflor_escenarios.parquet,19656
+aptitud,un_cultivo,Cártamo,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/cartamo_escenarios.parquet,19656
+aptitud,un_cultivo,Durazno,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/durazno_escenarios.parquet,19656
+aptitud,un_cultivo,Espinaca,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/espinaca_escenarios.parquet,19656
+aptitud,un_cultivo,Espárrago,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/esparrago_escenarios.parquet,19656
+aptitud,un_cultivo,Frambuesa,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/frambuesa_escenarios.parquet,19656
+aptitud,un_cultivo,Fresa,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/fresa_escenarios.parquet,19656
+aptitud,un_cultivo,Frijol,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/frijol_escenarios.parquet,19656
+aptitud,un_cultivo,Garbanzo,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/garbanzo_escenarios.parquet,19656
+aptitud,un_cultivo,Gerbera,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/gerbera_escenarios.parquet,19656
+aptitud,un_cultivo,Girasol,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/girasol_escenarios.parquet,19656
+aptitud,un_cultivo,Gladiola,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/gladiola_escenarios.parquet,19656
+aptitud,un_cultivo,Granada,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/granada_escenarios.parquet,19656
+aptitud,un_cultivo,Guanábana,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/guanabana_escenarios.parquet,19656
+aptitud,un_cultivo,Guayaba,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/guayaba_escenarios.parquet,19656
+aptitud,un_cultivo,Guayaba fresa,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/guayaba_fresa_escenarios.parquet,19656
+aptitud,un_cultivo,Haba,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/haba_escenarios.parquet,19656
+aptitud,un_cultivo,Hierbabuena,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/hierbabuena_escenarios.parquet,19656
+aptitud,un_cultivo,Higo,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/higo_escenarios.parquet,19656
+aptitud,un_cultivo,Higuerilla,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/higuerilla_escenarios.parquet,19656
+aptitud,un_cultivo,Hule,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/hule_escenarios.parquet,19656
+aptitud,un_cultivo,Jaca,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/jaca_escenarios.parquet,19656
+aptitud,un_cultivo,Jamaica,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/jamaica_escenarios.parquet,19656
+aptitud,un_cultivo,Jatropha,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/jatropha_escenarios.parquet,19656
+aptitud,un_cultivo,Jícama,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/jicama_escenarios.parquet,19656
+aptitud,un_cultivo,Kiwi,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/kiwi_escenarios.parquet,19656
+aptitud,un_cultivo,Lechuga,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/lechuga_escenarios.parquet,19656
+aptitud,un_cultivo,Lenteja,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/lenteja_escenarios.parquet,19656
+aptitud,un_cultivo,Lima,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/lima_escenarios.parquet,19656
+aptitud,un_cultivo,Limón,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/limon_escenarios.parquet,19656
+aptitud,un_cultivo,Litchi,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/litchi_escenarios.parquet,19656
+aptitud,un_cultivo,Macadamia,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/macadamia_escenarios.parquet,19656
+aptitud,un_cultivo,Mamey,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/mamey_escenarios.parquet,19656
+aptitud,un_cultivo,Mandarina,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/mandarina_escenarios.parquet,19656
+aptitud,un_cultivo,Mango,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/mango_escenarios.parquet,19656
+aptitud,un_cultivo,Mangostán,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/mangostan_escenarios.parquet,19656
+aptitud,un_cultivo,Manzano,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/manzano_escenarios.parquet,19656
+aptitud,un_cultivo,Maracuyá,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/maracuya_escenarios.parquet,19656
+aptitud,un_cultivo,Maíz,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/maiz_escenarios.parquet,19656
+aptitud,un_cultivo,Melón,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/melon_escenarios.parquet,19656
+aptitud,un_cultivo,Nanche,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/nanche_escenarios.parquet,19656
+aptitud,un_cultivo,Naranja,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/naranja_escenarios.parquet,19656
+aptitud,un_cultivo,Nogal,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/nogal_escenarios.parquet,19656
+aptitud,un_cultivo,Nopal,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/nopal_escenarios.parquet,19656
+aptitud,un_cultivo,Okra,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/okra_escenarios.parquet,19656
+aptitud,un_cultivo,Olivo,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/olivo_escenarios.parquet,19656
+aptitud,un_cultivo,Orégano,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/oregano_escenarios.parquet,19656
+aptitud,un_cultivo,Palma de aceite,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/palma_de_aceite_escenarios.parquet,19656
+aptitud,un_cultivo,Papa,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/papa_escenarios.parquet,19656
+aptitud,un_cultivo,Papaya,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/papaya_escenarios.parquet,19656
+aptitud,un_cultivo,Pepino,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/pepino_escenarios.parquet,19656
+aptitud,un_cultivo,Pera,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/pera_escenarios.parquet,19656
+aptitud,un_cultivo,Perejil,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/perejil_escenarios.parquet,19656
+aptitud,un_cultivo,Pimienta,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/pimienta_escenarios.parquet,19656
+aptitud,un_cultivo,Pistacho,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/pistacho_escenarios.parquet,19656
+aptitud,un_cultivo,Pitahaya,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/pitahaya_escenarios.parquet,19656
+aptitud,un_cultivo,Pitaya,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/pitaya_escenarios.parquet,19656
+aptitud,un_cultivo,Piña,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/pina_escenarios.parquet,19656
+aptitud,un_cultivo,Plátano,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/platano_escenarios.parquet,19656
+aptitud,un_cultivo,Rambután,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/rambutan_escenarios.parquet,19656
+aptitud,un_cultivo,Rosa,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/rosa_escenarios.parquet,19656
+aptitud,un_cultivo,Rábano,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/rabano_escenarios.parquet,19656
+aptitud,un_cultivo,Sandía,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/sandia_escenarios.parquet,19656
+aptitud,un_cultivo,Sorgo,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/sorgo_escenarios.parquet,19656
+aptitud,un_cultivo,Soya,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/soya_escenarios.parquet,19656
+aptitud,un_cultivo,Stevia,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/stevia_escenarios.parquet,19656
+aptitud,un_cultivo,Tabaco,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/tabaco_escenarios.parquet,19656
+aptitud,un_cultivo,Tamarindo,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/tamarindo_escenarios.parquet,19656
+aptitud,un_cultivo,Tomate,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/tomate_escenarios.parquet,19656
+aptitud,un_cultivo,Tomate de cáscara,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/tomate_de_cascara_escenarios.parquet,19656
+aptitud,un_cultivo,Tomillo,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/tomillo_escenarios.parquet,19656
+aptitud,un_cultivo,Toronja,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/toronja_escenarios.parquet,19656
+aptitud,un_cultivo,Trigo,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/trigo_escenarios.parquet,19656
+aptitud,un_cultivo,Vainilla,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/vainilla_escenarios.parquet,19656
+aptitud,un_cultivo,Vid,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/vid_escenarios.parquet,19656
+aptitud,un_cultivo,Yuca,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/yuca_escenarios.parquet,19656
+aptitud,un_cultivo,Zanahoria,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/zanahoria_escenarios.parquet,19656
+aptitud,un_cultivo,Zarzamora,todos_en_archivo,Todos los escenarios del cultivo,data/mapas_integrados/aptitud_por_cultivo/zarzamora_escenarios.parquet,19656
+aptitud,todos_cultivos,Todos los cultivos,solo,Solo condiciones del cultivo,data/mapas_integrados/aptitud_todos_solo.parquet,2457
+aptitud,todos_cultivos,Todos los cultivos,todos_sistemas,Todos los sistemas / mejor escenario,data/mapas_integrados/aptitud_todos_todos_sistemas.parquet,2457
+aptitud,todos_cultivos,Todos los cultivos,cielo_abierto,Exterior horizontal / cielo abierto,data/mapas_integrados/aptitud_todos_cielo_abierto.parquet,2457
+aptitud,todos_cultivos,Todos los cultivos,azotea_extensiva,Azotea extensiva,data/mapas_integrados/aptitud_todos_azotea_extensiva.parquet,2457
+aptitud,todos_cultivos,Todos los cultivos,azotea_intensiva,Azotea intensiva,data/mapas_integrados/aptitud_todos_azotea_intensiva.parquet,2457
+aptitud,todos_cultivos,Todos los cultivos,huerto_vertical,Huerto vertical exterior,data/mapas_integrados/aptitud_todos_huerto_vertical.parquet,2457
+aptitud,todos_cultivos,Todos los cultivos,invernadero,Invernadero,data/mapas_integrados/aptitud_todos_invernadero.parquet,2457
+aptitud,todos_cultivos,Todos los cultivos,interior_led,Cultivo interior con luz artificial,data/mapas_integrados/aptitud_todos_interior_led.parquet,2457
