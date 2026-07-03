@@ -418,6 +418,16 @@ def safe_rerun():
         st.experimental_rerun()
 
 
+def limpiar_ubicacion_chat():
+    """Elimina la ubicación activa y cualquier consulta que la estuviera esperando."""
+    st.session_state["usar_filtro_ubicacion_integrada"] = False
+    st.session_state["estado_objetivo_integrado"] = None
+    st.session_state["municipio_objetivo_integrado"] = None
+    st.session_state["lugar_mencionado_integrado"] = None
+    st.session_state["requiere_ubicacion_integrada"] = False
+    st.session_state["consulta_pendiente_integrada"] = None
+
+
 # ============================================================
 # CARGA DE DATOS
 # ============================================================
@@ -2467,6 +2477,20 @@ def generar_respuesta_chat_si_pendiente(
     st.session_state["respuesta_pendiente_integrada"] = False
 
 
+def exportar_historial_chat(historial):
+    lineas = [
+        "# Conversación con el mapa de aptitud de cultivos",
+        "",
+    ]
+
+    for mensaje in historial:
+        rol = "Usuario" if mensaje.get("role") == "user" else "Asistente"
+        contenido = str(mensaje.get("content", "")).strip()
+        lineas.extend([f"## {rol}", "", contenido, ""])
+
+    return "\n".join(lineas).strip() + "\n"
+
+
 def render_chat_historial():
     historial = st.session_state.get("chat_integrado_historial", [])
 
@@ -2497,6 +2521,14 @@ def render_chat_historial():
                         st.markdown(f"- [{titulo}]({url}) — {detalle}")
                     else:
                         st.markdown(f"- [{titulo}]({url})")
+
+    st.download_button(
+        "Descargar conversación",
+        data=exportar_historial_chat(historial).encode("utf-8"),
+        file_name="conversacion_mapa_cultivos.md",
+        mime="text/markdown",
+        key="descargar_conversacion_integrada",
+    )
 
 
 # ============================================================
@@ -2706,6 +2738,24 @@ alpha = st.sidebar.slider(
 
 st.sidebar.markdown("---")
 
+if st.session_state.get("usar_filtro_ubicacion_integrada", False):
+    ubicacion_activa = (
+        st.session_state.get("municipio_objetivo_integrado")
+        or st.session_state.get("estado_objetivo_integrado")
+        or st.session_state.get("lugar_mencionado_integrado")
+        or "ubicación detectada"
+    )
+    st.sidebar.warning(f"Filtro de ubicación activo: {ubicacion_activa}")
+
+    if st.sidebar.button(
+        "Mostrar todo México",
+        type="primary",
+        width="stretch",
+        key="quitar_ubicacion_principal",
+    ):
+        limpiar_ubicacion_chat()
+        safe_rerun()
+
 with st.sidebar.expander("Consulta detectada por IA", expanded=False):
     if st.session_state.get("ultima_intencion_integrada"):
         st.json(st.session_state["ultima_intencion_integrada"])
@@ -2718,11 +2768,8 @@ with st.sidebar.expander("Ubicación detectada", expanded=False):
         st.write("Municipio:", st.session_state.get("municipio_objetivo_integrado"))
         st.write("Lugar:", st.session_state.get("lugar_mencionado_integrado"))
 
-        if st.button("Quitar filtro de ubicación"):
-            st.session_state["usar_filtro_ubicacion_integrada"] = False
-            st.session_state["estado_objetivo_integrado"] = None
-            st.session_state["municipio_objetivo_integrado"] = None
-            st.session_state["lugar_mencionado_integrado"] = None
+        if st.button("Quitar filtro de ubicación", key="quitar_ubicacion_detalle"):
+            limpiar_ubicacion_chat()
             safe_rerun()
     else:
         st.write("No hay ubicación activa.")
@@ -2775,6 +2822,13 @@ if info_ubicacion is not None:
             st.info(f"Mostrando resultados para **{lugar}** ({ubicacion_txt}).")
         else:
             st.info(f"Mostrando resultados para **{ubicacion_txt}**.")
+
+        if st.button(
+            "Quitar ubicación y mostrar todo México",
+            key="quitar_ubicacion_mapa",
+        ):
+            limpiar_ubicacion_chat()
+            safe_rerun()
     else:
         st.warning(
             "Detecté una ubicación en tu pregunta, pero no encontré coincidencias "
@@ -3044,6 +3098,18 @@ with col_mapa:
         )
 
         st.pydeck_chart(deck, width="stretch")
+
+        mapa_html = deck.to_html(
+            as_string=True,
+            notebook_display=False,
+        )
+        st.download_button(
+            "Descargar mapa interactivo",
+            data=mapa_html.encode("utf-8"),
+            file_name="mapa_aptitud_cultivos.html",
+            mime="text/html",
+            key="descargar_mapa_html",
+        )
 
 
 # ============================================================
