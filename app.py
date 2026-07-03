@@ -475,7 +475,7 @@ def resolver_ruta(ruta_str):
     return ruta
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, max_entries=8)
 def cargar_csv(ruta_csv_str):
     ruta = resolver_ruta(ruta_csv_str)
 
@@ -486,6 +486,89 @@ def cargar_csv(ruta_csv_str):
         return pd.read_parquet(ruta)
 
     return pd.read_csv(ruta)
+
+
+COLUMNAS_RANKING = [
+    "gid_municipio",
+    "estado",
+    "municipio",
+    "nombre_cultivo",
+    "escenario_key",
+    "escenario",
+    "valor",
+    "clase",
+    "valor_base",
+    "compatibilidad",
+    "factor_escenario",
+    "factor_base",
+]
+
+
+def cargar_tabla_ranking(ruta_tabla_str, estado_obj=None, municipio_obj=None):
+    """Lee solo columnas y filas necesarias, sin llenar la caché principal."""
+    ruta = resolver_ruta(ruta_tabla_str)
+
+    if not ruta.exists():
+        return pd.DataFrame()
+
+    if ruta.suffix.lower() not in {".parquet", ".pq"}:
+        df = pd.read_csv(
+            ruta,
+            usecols=lambda columna: columna in COLUMNAS_RANKING,
+            low_memory=False,
+        )
+        return df
+
+    filtros = []
+
+    if estado_obj:
+        filtros.append(("estado", "==", estado_obj))
+
+    if municipio_obj:
+        filtros.append(("municipio", "==", municipio_obj))
+
+    df = pd.read_parquet(
+        ruta,
+        columns=COLUMNAS_RANKING,
+        filters=filtros or None,
+    )
+
+    if not df.empty or not filtros:
+        return df
+
+    # Si el nombre producido por el LLM no coincide literalmente, cargamos
+    # solo las dos columnas geográficas para resolver la variante y repetimos
+    # la lectura filtrada. Nunca se conserva la tabla completa en caché.
+    ubicaciones = pd.read_parquet(
+        ruta,
+        columns=["estado", "municipio"],
+    )
+    filtros_resueltos = []
+
+    if estado_obj:
+        estado_match = encontrar_opcion_por_texto(
+            ubicaciones["estado"].dropna().unique().tolist(),
+            estado_obj,
+        )
+        if not estado_match:
+            return pd.DataFrame()
+        filtros_resueltos.append(("estado", "==", estado_match))
+        ubicaciones = ubicaciones[ubicaciones["estado"] == estado_match]
+
+    if municipio_obj:
+        municipio_match = encontrar_opcion_por_texto(
+            ubicaciones["municipio"].dropna().unique().tolist(),
+            municipio_obj,
+        )
+        if not municipio_match:
+            return pd.DataFrame()
+        filtros_resueltos.append(("municipio", "==", municipio_match))
+
+    return pd.read_parquet(
+        ruta,
+        columns=COLUMNAS_RANKING,
+        filters=filtros_resueltos or None,
+    )
 
 
 def resolver_geojson():
@@ -595,7 +678,7 @@ def preparar_pdf_un_cultivo_original(df, nombre_cultivo):
     return df
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, max_entries=4)
 def cargar_pdf_un_cultivo_original(ruta_csv_str, nombre_cultivo):
     df = cargar_csv(ruta_csv_str)
     return preparar_pdf_un_cultivo_original(df, nombre_cultivo)
@@ -1006,7 +1089,7 @@ def aplicar_filtro_ubicacion_chat(df):
     return df_filtrado, info
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, max_entries=8)
 def calcular_ranking_local_cacheado(indice_json, estado_obj, municipio_obj, escenario_key, top_n=12):
     indice = pd.DataFrame(json.loads(indice_json))
 
@@ -1031,7 +1114,13 @@ def calcular_ranking_local_cacheado(indice_json, estado_obj, municipio_obj, esce
         if not archivo:
             continue
 
-        df = adaptar_integrado_a_app(cargar_csv(archivo))
+        df = adaptar_integrado_a_app(
+            cargar_tabla_ranking(
+                archivo,
+                estado_obj=estado_obj,
+                municipio_obj=municipio_obj,
+            )
+        )
 
         if df.empty:
             continue
@@ -1226,7 +1315,7 @@ def color_por_fila(fila, modo_color, alpha):
     return rgba_from_hex("#bdbdbd", alpha)
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, max_entries=3)
 def construir_geojson_cacheado(geojson_base, df_json, modo_color, alpha):
     df = pd.DataFrame(json.loads(df_json))
     df["_gid_join"] = df.apply(obtener_gid_fila, axis=1)
@@ -3099,13 +3188,12 @@ with col_mapa:
 
         st.pydeck_chart(deck, width="stretch")
 
-        mapa_html = deck.to_html(
-            as_string=True,
-            notebook_display=False,
-        )
         st.download_button(
             "Descargar mapa interactivo",
-            data=mapa_html.encode("utf-8"),
+            data=lambda: deck.to_html(
+                as_string=True,
+                notebook_display=False,
+            ).encode("utf-8"),
             file_name="mapa_aptitud_cultivos.html",
             mime="text/html",
             key="descargar_mapa_html",
