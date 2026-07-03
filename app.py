@@ -6,6 +6,9 @@ import hashlib
 import colorsys
 import unicodedata
 import html
+from io import BytesIO
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 import pandas as pd
@@ -2606,18 +2609,244 @@ def generar_respuesta_chat_si_pendiente(
     st.session_state["respuesta_pendiente_integrada"] = False
 
 
-def exportar_historial_chat(historial):
-    lineas = [
-        "# Conversación con el mapa de aptitud de cultivos",
-        "",
+def generar_pdf_conversacion(historial):
+    """Genera un reporte PDF diseñado directamente, sin Markdown visible."""
+    from reportlab.lib import colors
+    from reportlab.lib.colors import HexColor
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import mm
+    from reportlab.platypus import (
+        HRFlowable,
+        KeepTogether,
+        Paragraph,
+        SimpleDocTemplate,
+        Spacer,
+        Table,
+        TableStyle,
+    )
+
+    def convertir_markdown_basico(texto):
+        texto = str(texto or "").strip()
+        texto = re.sub(
+            r"\[([^\]]+)\]\((https?://[^)]+)\)",
+            r"\1 (\2)",
+            texto,
+        )
+        bloques = re.split(r"\n\s*\n", texto)
+        resultado = []
+
+        for bloque in bloques:
+            lineas = []
+
+            for linea in bloque.splitlines():
+                linea = re.sub(r"^\s*#{1,6}\s*", "", linea)
+                linea = re.sub(r"^\s*[-*]\s+", "- ", linea)
+                linea = html.escape(linea.strip())
+                linea = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", linea)
+                linea = re.sub(r"(?<!\*)\*([^*]+?)\*(?!\*)", r"<i>\1</i>", linea)
+                linea = re.sub(r"`([^`]+)`", r"<font name='Courier'>\1</font>", linea)
+                linea = linea.replace("**", "").replace("##", "").replace("#", "")
+
+                if linea:
+                    lineas.append(linea)
+
+            if lineas:
+                resultado.append("<br/>".join(lineas))
+
+        return resultado or ["Sin contenido."]
+
+    salida = BytesIO()
+    documento = SimpleDocTemplate(
+        salida,
+        pagesize=A4,
+        rightMargin=18 * mm,
+        leftMargin=18 * mm,
+        topMargin=20 * mm,
+        bottomMargin=18 * mm,
+        title="Conversación - Mapa integrado de cultivos",
+        author=APP_DESARROLLADORA,
+        subject="Historial de consulta del mapa de aptitud de cultivos",
+    )
+
+    estilos_base = getSampleStyleSheet()
+    verde = HexColor("#174A3A")
+    verde_claro = HexColor("#EAF5EF")
+    azul_claro = HexColor("#EDF4FA")
+    texto = HexColor("#22312C")
+    gris = HexColor("#5E6F68")
+
+    estilo_titulo = ParagraphStyle(
+        "TituloReporte",
+        parent=estilos_base["Title"],
+        fontName="Helvetica-Bold",
+        fontSize=21,
+        leading=25,
+        textColor=verde,
+        alignment=TA_LEFT,
+        spaceAfter=6,
+    )
+    estilo_subtitulo = ParagraphStyle(
+        "SubtituloReporte",
+        parent=estilos_base["Normal"],
+        fontName="Helvetica",
+        fontSize=10.5,
+        leading=15,
+        textColor=gris,
+        spaceAfter=11,
+    )
+    estilo_dato = ParagraphStyle(
+        "DatoReporte",
+        parent=estilos_base["Normal"],
+        fontName="Helvetica",
+        fontSize=8.7,
+        leading=12,
+        textColor=texto,
+    )
+    estilo_fuente = ParagraphStyle(
+        "FuenteReporte",
+        parent=estilos_base["Normal"],
+        fontName="Helvetica-Oblique",
+        fontSize=8,
+        leading=11,
+        textColor=gris,
+        spaceAfter=10,
+    )
+    estilo_rol = ParagraphStyle(
+        "RolReporte",
+        parent=estilos_base["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=9,
+        leading=12,
+        textColor=verde,
+    )
+    estilo_mensaje = ParagraphStyle(
+        "MensajeReporte",
+        parent=estilos_base["BodyText"],
+        fontName="Helvetica",
+        fontSize=9.4,
+        leading=14,
+        textColor=texto,
+        alignment=TA_LEFT,
+        spaceAfter=5,
+    )
+
+    fecha = datetime.now(ZoneInfo("America/Mexico_City")).strftime(
+        "%d/%m/%Y - %H:%M"
+    )
+    historia = [
+        Paragraph("Mapa integrado de cultivos", estilo_titulo),
+        Paragraph(
+            "Historial de conversación y resultados interpretados por la aplicación",
+            estilo_subtitulo,
+        ),
     ]
 
-    for mensaje in historial:
-        rol = "Usuario" if mensaje.get("role") == "user" else "Asistente"
-        contenido = str(mensaje.get("content", "")).strip()
-        lineas.extend([f"## {rol}", "", contenido, ""])
+    datos = [
+        [
+            Paragraph("<b>Elaborado por</b><br/>Dra. Juana Isabel Méndez", estilo_dato),
+            Paragraph("<b>Contacto</b><br/>isabelmendez@tec.mx", estilo_dato),
+        ],
+        [
+            Paragraph(f"<b>Fecha de descarga</b><br/>{fecha}", estilo_dato),
+            Paragraph(
+                f"<b>Mensajes incluidos</b><br/>{len(historial)}",
+                estilo_dato,
+            ),
+        ],
+    ]
+    tabla_datos = Table(datos, colWidths=[documento.width / 2] * 2)
+    tabla_datos.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), HexColor("#F3F7F5")),
+                ("BOX", (0, 0), (-1, -1), 0.5, HexColor("#C9D8D0")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.35, HexColor("#D7E2DC")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 9),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 9),
+                ("TOPPADDING", (0, 0), (-1, -1), 7),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+            ]
+        )
+    )
+    historia.extend(
+        [
+            tabla_datos,
+            Spacer(1, 8),
+            Paragraph(
+                "Fuente agroecológica: Ruiz Corral et al. (2020), "
+                "<i>Requerimientos agroecológicos de cultivos</i> (2.ª ed.).",
+                estilo_fuente,
+            ),
+            HRFlowable(
+                width="100%",
+                thickness=1,
+                color=HexColor("#B7CDC2"),
+                spaceBefore=2,
+                spaceAfter=10,
+            ),
+        ]
+    )
 
-    return "\n".join(lineas).strip() + "\n"
+    for numero, mensaje in enumerate(historial, start=1):
+        es_usuario = mensaje.get("role") == "user"
+        rol = "Pregunta del usuario" if es_usuario else "Respuesta del mapa"
+        fondo = azul_claro if es_usuario else verde_claro
+
+        encabezado = Table(
+            [[Paragraph(f"{numero}. {rol}", estilo_rol)]],
+            colWidths=[documento.width],
+        )
+        encabezado.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), fondo),
+                    ("BOX", (0, 0), (-1, -1), 0.45, HexColor("#C8D8D0")),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 9),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 9),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ]
+            )
+        )
+        bloque_mensaje = [encabezado, Spacer(1, 5)]
+
+        for bloque in convertir_markdown_basico(mensaje.get("content", "")):
+            bloque_mensaje.append(Paragraph(bloque, estilo_mensaje))
+
+        bloque_mensaje.append(Spacer(1, 8))
+        historia.append(KeepTogether(bloque_mensaje))
+
+    def dibujar_encabezado_pie(canvas, doc):
+        canvas.saveState()
+        ancho, alto = A4
+        canvas.setFillColor(verde)
+        canvas.rect(0, alto - 7 * mm, ancho, 7 * mm, fill=1, stroke=0)
+        canvas.setStrokeColor(HexColor("#C8D8D0"))
+        canvas.line(18 * mm, 13 * mm, ancho - 18 * mm, 13 * mm)
+        canvas.setFont("Helvetica", 7.5)
+        canvas.setFillColor(gris)
+        canvas.drawString(
+            18 * mm,
+            8.5 * mm,
+            "Dra. Juana Isabel Méndez | Mapa integrado de cultivos",
+        )
+        canvas.drawRightString(
+            ancho - 18 * mm,
+            8.5 * mm,
+            f"Página {doc.page}",
+        )
+        canvas.restoreState()
+
+    documento.build(
+        historia,
+        onFirstPage=dibujar_encabezado_pie,
+        onLaterPages=dibujar_encabezado_pie,
+    )
+    salida.seek(0)
+    return salida.getvalue()
 
 
 def generar_html_mapa_descargable(
@@ -2834,10 +3063,10 @@ def render_chat_historial():
                         st.markdown(f"- [{titulo}]({url})")
 
     st.download_button(
-        "Descargar conversación",
-        data=exportar_historial_chat(historial).encode("utf-8"),
-        file_name="conversacion_mapa_cultivos.md",
-        mime="text/markdown",
+        "Descargar conversación en PDF",
+        data=lambda: generar_pdf_conversacion(historial),
+        file_name="conversacion_mapa_cultivos.pdf",
+        mime="application/pdf",
         key="descargar_conversacion_integrada",
     )
 
