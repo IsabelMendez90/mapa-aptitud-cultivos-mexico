@@ -5,6 +5,7 @@ import re
 import hashlib
 import colorsys
 import unicodedata
+import html
 from pathlib import Path
 
 import pandas as pd
@@ -1315,6 +1316,45 @@ def color_por_fila(fila, modo_color, alpha):
     return rgba_from_hex("#bdbdbd", alpha)
 
 
+def calcular_vista_mapa(df):
+    """Ajusta el encuadre al territorio visible sin depender del navegador."""
+    if df.empty or "lat" not in df.columns or "lon" not in df.columns:
+        return pdk.ViewState(latitude=23.7, longitude=-102.0, zoom=4.2, pitch=0)
+
+    latitudes = pd.to_numeric(df["lat"], errors="coerce").dropna()
+    longitudes = pd.to_numeric(df["lon"], errors="coerce").dropna()
+
+    if latitudes.empty or longitudes.empty:
+        return pdk.ViewState(latitude=23.7, longitude=-102.0, zoom=4.2, pitch=0)
+
+    centro_lat = (latitudes.min() + latitudes.max()) / 2
+    centro_lon = (longitudes.min() + longitudes.max()) / 2
+    extension = max(
+        float(latitudes.max() - latitudes.min()),
+        float(longitudes.max() - longitudes.min()),
+    )
+
+    if extension <= 0.15:
+        zoom = 10.0
+    elif extension <= 0.4:
+        zoom = 8.5
+    elif extension <= 1.0:
+        zoom = 7.2
+    elif extension <= 2.5:
+        zoom = 6.0
+    elif extension <= 6.0:
+        zoom = 5.0
+    else:
+        zoom = 4.2
+
+    return pdk.ViewState(
+        latitude=float(centro_lat),
+        longitude=float(centro_lon),
+        zoom=zoom,
+        pitch=0,
+    )
+
+
 @st.cache_data(show_spinner=False, max_entries=3)
 def construir_geojson_cacheado(geojson_base, df_json, modo_color, alpha):
     df = pd.DataFrame(json.loads(df_json))
@@ -2580,6 +2620,188 @@ def exportar_historial_chat(historial):
     return "\n".join(lineas).strip() + "\n"
 
 
+def generar_html_mapa_descargable(
+    deck,
+    titulo,
+    subtitulo,
+    metadatos,
+    items_leyenda,
+):
+    """Añade identidad, metadatos y leyenda al HTML interactivo de PyDeck."""
+    escapar = lambda valor: html.escape(str(valor), quote=True)
+
+    filas_metadatos = "".join(
+        f"""
+        <div class="meta-item">
+          <span class="meta-label">{escapar(etiqueta)}</span>
+          <span class="meta-value">{escapar(valor)}</span>
+        </div>
+        """
+        for etiqueta, valor in metadatos
+        if valor not in [None, ""]
+    )
+
+    filas_leyenda = "".join(
+        f"""
+        <div class="legend-item">
+          <span class="legend-swatch" style="background:{escapar(item.get('color', '#bdbdbd'))}"></span>
+          <span class="legend-label">{escapar(item.get('etiqueta', 'Sin etiqueta'))}</span>
+          <span class="legend-count">{int(item.get('municipios', 0)):,}</span>
+        </div>
+        """
+        for item in items_leyenda
+    )
+
+    panel = f"""
+    <section class="map-card map-header" aria-label="Información del mapa">
+      <div class="eyebrow">GIS URBANO · MÉXICO</div>
+      <h1>{escapar(titulo)}</h1>
+      <p class="subtitle">{escapar(subtitulo)}</p>
+      <div class="author">
+        Elaborado por <strong>Dra. Juana Isabel Méndez</strong><br>
+        <a href="mailto:isabelmendez@tec.mx">isabelmendez@tec.mx</a>
+      </div>
+      <div class="meta-grid">{filas_metadatos}</div>
+      <p class="source">
+        Fuente agroecológica: Ruiz Corral et al. (2020),
+        <em>Requerimientos agroecológicos de cultivos</em> (2.ª ed.).
+      </p>
+    </section>
+    <section class="map-card map-legend" aria-label="Leyenda del mapa">
+      <div class="legend-title">Leyenda</div>
+      <div class="legend-items">{filas_leyenda}</div>
+      <div class="legend-note">El número indica municipios visibles.</div>
+    </section>
+    <div class="map-footer">
+      Mapa interactivo · Pase el cursor sobre un municipio para consultar sus datos
+    </div>
+    """
+
+    estilos = """
+    <style>
+      :root {
+        --panel: rgba(15, 33, 29, 0.94);
+        --panel-soft: rgba(255, 255, 255, 0.09);
+        --line: rgba(255, 255, 255, 0.16);
+        --text: #f5fbf7;
+        --muted: #bdd0c4;
+        --accent: #7dd3a7;
+      }
+      body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+      .map-card {
+        position: fixed;
+        z-index: 20;
+        color: var(--text);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.30);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .map-header {
+        top: 18px;
+        left: 18px;
+        width: min(390px, calc(100vw - 36px));
+        padding: 20px 22px 17px;
+      }
+      .eyebrow {
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .16em;
+        margin-bottom: 7px;
+      }
+      h1 {
+        font-size: 24px;
+        line-height: 1.12;
+        letter-spacing: -.025em;
+        margin: 0 0 6px;
+      }
+      .subtitle { color: var(--muted); font-size: 13px; line-height: 1.4; margin: 0 0 12px; }
+      .author {
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        padding: 9px 0;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+      .author a { color: var(--accent); text-decoration: none; }
+      .meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+        margin-top: 11px;
+      }
+      .meta-item { background: var(--panel-soft); border-radius: 9px; padding: 7px 9px; min-width: 0; }
+      .meta-label {
+        display: block;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+      .meta-value {
+        display: block;
+        font-size: 11px;
+        font-weight: 650;
+        line-height: 1.3;
+        margin-top: 2px;
+        overflow-wrap: anywhere;
+      }
+      .source { color: var(--muted); font-size: 9.5px; line-height: 1.35; margin: 11px 0 0; }
+      .map-legend {
+        right: 18px;
+        bottom: 43px;
+        width: min(320px, calc(100vw - 36px));
+        max-height: 48vh;
+        padding: 14px 16px 12px;
+      }
+      .legend-title { font-size: 14px; font-weight: 800; margin-bottom: 8px; }
+      .legend-items { overflow-y: auto; max-height: calc(48vh - 61px); padding-right: 3px; }
+      .legend-item {
+        display: grid;
+        grid-template-columns: 15px 1fr auto;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 0;
+        border-bottom: 1px solid rgba(255,255,255,.07);
+        font-size: 11px;
+      }
+      .legend-swatch { width: 13px; height: 13px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.35); }
+      .legend-count { color: var(--muted); font-variant-numeric: tabular-nums; }
+      .legend-note { color: var(--muted); font-size: 9px; margin-top: 7px; }
+      .map-footer {
+        position: fixed;
+        z-index: 19;
+        left: 50%;
+        bottom: 10px;
+        transform: translateX(-50%);
+        color: #eef8f1;
+        background: rgba(15,33,29,.86);
+        border: 1px solid rgba(255,255,255,.13);
+        border-radius: 999px;
+        padding: 6px 13px;
+        font-size: 9.5px;
+        white-space: nowrap;
+      }
+      @media (max-width: 720px) {
+        .map-header { width: calc(100vw - 24px); top: 12px; left: 12px; padding: 15px; }
+        .map-header h1 { font-size: 20px; }
+        .map-legend { right: 12px; bottom: 38px; max-height: 31vh; }
+        .map-footer { display: none; }
+      }
+    </style>
+    """
+
+    salida = deck.to_html(as_string=True, notebook_display=False)
+    salida = salida.replace("<title>pydeck</title>", f"<title>{escapar(titulo)}</title>")
+    salida = salida.replace("</head>", estilos + "\n</head>")
+    salida = salida.replace("</body>", panel + "\n</body>")
+    return salida.encode("utf-8")
+
+
 def render_chat_historial():
     historial = st.session_state.get("chat_integrado_historial", [])
 
@@ -3147,12 +3369,7 @@ with col_mapa:
             line_width_min_pixels=0.4,
         )
 
-        view_state = pdk.ViewState(
-            latitude=23.7,
-            longitude=-102.0,
-            zoom=4.2,
-            pitch=0,
-        )
+        view_state = calcular_vista_mapa(df_filtrado_leyenda)
 
         tooltip = {
             "html": """
@@ -3188,12 +3405,59 @@ with col_mapa:
 
         st.pydeck_chart(deck, width="stretch")
 
+        if estados_sel:
+            cobertura_exportacion = ", ".join(estados_sel)
+        elif info_ubicacion is not None and info_ubicacion.get("filas_resultantes", 0) > 0:
+            cobertura_partes = [
+                info_ubicacion.get("municipio_aplicado"),
+                info_ubicacion.get("estado_aplicado"),
+            ]
+            cobertura_exportacion = ", ".join(
+                str(parte) for parte in cobertura_partes if parte
+            )
+        else:
+            cobertura_exportacion = "México"
+
+        if vista == "un_cultivo":
+            subtitulo_exportacion = cultivo_label
+        else:
+            subtitulo_exportacion = "Mejor opción estimada por municipio"
+
+        escenario_exportacion = (
+            ESCENARIOS.get(escenario_key, escenario_key)
+            if lectura == "aptitud"
+            else "No aplica"
+        )
+        filtros_exportacion = f"Valor mínimo: {min_valor}"
+
+        if factores_sel:
+            filtros_exportacion += " · " + ", ".join(
+                nombre_factor_legible(factor) for factor in factores_sel
+            )
+
+        metadatos_exportacion = [
+            ("Tipo de lectura", LECTURAS.get(lectura, lectura)),
+            ("Tipo de vista", VISTAS.get(vista, vista)),
+            ("Escenario", escenario_exportacion),
+            ("Coloreado por", modo_color),
+            ("Cobertura", cobertura_exportacion or "México"),
+            ("Municipios visibles", contar_municipios_unicos(df_filtrado_leyenda)),
+            ("Filtros", filtros_exportacion),
+        ]
+        leyenda_exportacion = obtener_items_leyenda(
+            modo_color,
+            df_filtrado_leyenda,
+        )
+
         st.download_button(
             "Descargar mapa interactivo",
-            data=lambda: deck.to_html(
-                as_string=True,
-                notebook_display=False,
-            ).encode("utf-8"),
+            data=lambda: generar_html_mapa_descargable(
+                deck=deck,
+                titulo="Mapa integrado de cultivos",
+                subtitulo=subtitulo_exportacion,
+                metadatos=metadatos_exportacion,
+                items_leyenda=leyenda_exportacion,
+            ),
             file_name="mapa_aptitud_cultivos.html",
             mime="text/html",
             key="descargar_mapa_html",
