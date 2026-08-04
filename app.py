@@ -1885,9 +1885,9 @@ def inicializar_estado():
         "ultima_pregunta_integrada": None,
         "respuesta_pendiente_integrada": False,
         "lectura_integrada": "aptitud",
-        "vista_integrada": "un_cultivo",
+        "vista_integrada": "todos_cultivos",
         "cultivo_integrado": None,
-        "escenario_integrado": "solo",
+        "escenario_integrado": "todos_sistemas",
         "color_integrado": "Índice de aptitud",
         "fuentes_web_ultima": [],
 
@@ -1897,6 +1897,11 @@ def inicializar_estado():
         "lugar_mencionado_integrado": None,
         "requiere_ubicacion_integrada": False,
         "consulta_pendiente_integrada": None,
+        "modo_uso_integrado": "guiada",
+        "tour_visto_integrado": False,
+        "flujo_guiado_integrado": "Recomendar cultivos para un lugar",
+        "estado_guia_integrada": None,
+        "municipio_guia_integrada": None,
     }
 
     for key, value in defaults.items():
@@ -3072,6 +3077,358 @@ def render_chat_historial():
 
 
 # ============================================================
+# EXPERIENCIA GUIADA / ONBOARDING
+# ============================================================
+
+def inyectar_estilos_ux():
+    st.markdown(
+        """
+        <style>
+        .app-hero {
+            padding: 1.1rem 1.25rem;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #f3fbf2 0%, #eef7ff 100%);
+            border: 1px solid #dcebdd;
+            margin: 0.65rem 0 1rem 0;
+        }
+        .app-hero h2 {
+            margin: 0 0 0.35rem 0;
+            font-size: 1.45rem;
+        }
+        .app-hero p {
+            margin: 0;
+            color: #4f5b4f;
+            font-size: 0.98rem;
+        }
+        .ux-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 1rem;
+            background: white;
+            box-shadow: 0 1px 8px rgba(20, 40, 20, 0.05);
+            min-height: 125px;
+        }
+        .ux-card h4 {
+            margin-top: 0;
+            margin-bottom: 0.4rem;
+        }
+        .ux-card p {
+            margin: 0;
+            color: #5f6368;
+            font-size: 0.92rem;
+        }
+        .result-card {
+            border: 1px solid #dfe7df;
+            border-left: 7px solid #66bd63;
+            border-radius: 14px;
+            padding: 0.85rem 0.95rem;
+            background: #ffffff;
+            margin-bottom: 0.65rem;
+        }
+        .result-card h4 {
+            margin: 0 0 0.25rem 0;
+        }
+        .result-card p {
+            margin: 0.15rem 0;
+            color: #4b5563;
+            font-size: 0.92rem;
+        }
+        .small-muted {
+            color: #6b7280;
+            font-size: 0.88rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_tour_inicial():
+    if st.session_state.get("tour_visto_integrado", False):
+        return
+
+    with st.container(border=True):
+        st.markdown("### Bienvenida rápida")
+        c1, c2, c3, c4 = st.columns(4)
+
+        c1.markdown("**1. Qué hace**")
+        c1.caption("Estima aptitud municipal para cultivos urbanos en México.")
+
+        c2.markdown("**2. Cómo empezar**")
+        c2.caption("Elige una pregunta, ubicación y sistema de cultivo.")
+
+        c3.markdown("**3. Cómo leerlo**")
+        c3.caption("Revisa aptitud, sistema sugerido y factor limitante.")
+
+        c4.markdown("**4. Qué no significa**")
+        c4.caption("No sustituye una visita técnica ni predice rendimiento exacto.")
+
+        if st.button("Entendido, comenzar", type="primary", key="cerrar_tour_integrado"):
+            st.session_state["tour_visto_integrado"] = True
+            safe_rerun()
+
+
+@st.cache_data(show_spinner=False)
+def obtener_ubicaciones_desde_geojson(geojson_base):
+    registros = []
+
+    for feature in geojson_base.get("features", []):
+        props = feature.get("properties", {})
+        estado = props.get("estado") or props.get("nom_ent") or props.get("NOMGEO_ENT")
+        municipio = props.get("municipio") or props.get("nom_mun") or props.get("NOMGEO")
+
+        if valor_no_vacio(estado) and valor_no_vacio(municipio):
+            registros.append({
+                "estado": str(estado),
+                "municipio": str(municipio),
+            })
+
+    if not registros:
+        return pd.DataFrame(columns=["estado", "municipio"])
+
+    return (
+        pd.DataFrame(registros)
+        .drop_duplicates()
+        .sort_values(["estado", "municipio"])
+        .reset_index(drop=True)
+    )
+
+
+def aplicar_ubicacion_guiada(estado, municipio):
+    st.session_state["usar_filtro_ubicacion_integrada"] = True
+    st.session_state["estado_objetivo_integrado"] = estado
+    st.session_state["municipio_objetivo_integrado"] = municipio
+    st.session_state["lugar_mencionado_integrado"] = municipio
+    st.session_state["requiere_ubicacion_integrada"] = False
+    st.session_state["consulta_pendiente_integrada"] = None
+
+
+def render_tarjetas_inicio():
+    st.markdown(
+        """
+        <div class="app-hero">
+            <h2>Empieza con una pregunta sencilla</h2>
+            <p>
+                La app traduce ubicación, cultivo y sistema urbano a una lectura de aptitud.
+                Si necesitas todos los controles técnicos, entra al Explorador avanzado.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    c1, c2, c3 = st.columns(3)
+
+    c1.markdown(
+        """
+        <div class="ux-card">
+            <h4>🌱 Recomendar cultivos</h4>
+            <p>Para saber qué opciones aparecen mejor posicionadas en un municipio.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    c2.markdown(
+        """
+        <div class="ux-card">
+            <h4>🍓 Evaluar un cultivo</h4>
+            <p>Para revisar si fresa, tomate, lechuga u otro cultivo conviene en tu ubicación.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    c3.markdown(
+        """
+        <div class="ux-card">
+            <h4>🏙️ Comparar sistemas</h4>
+            <p>Para contrastar exterior, azotea, vertical, invernadero o interior.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def sistema_desde_espacio_guiado(espacio):
+    mapa = {
+        "No estoy segura": "todos_sistemas",
+        "Suelo o patio exterior": "cielo_abierto",
+        "Azotea ligera": "azotea_extensiva",
+        "Azotea con camas o contenedores": "azotea_intensiva",
+        "Muro o jardín vertical": "huerto_vertical",
+        "Invernadero": "invernadero",
+        "Espacio interior con luz artificial": "interior_led",
+    }
+    return mapa.get(espacio, "todos_sistemas")
+
+
+def render_resultados_guiados(ranking_local, info_ubicacion, lectura, vista, cultivo_label, escenario_key, comparacion_sistemas):
+    if st.session_state.get("modo_uso_integrado") != "guiada":
+        return
+
+    st.markdown("### Resultado inicial")
+
+    if info_ubicacion is None or info_ubicacion.get("filas_resultantes", 0) <= 0:
+        st.info("Elige una ubicación en la consulta guiada para ver una recomendación directa.")
+        return
+
+    ubicacion_txt = ", ".join(
+        str(x)
+        for x in [
+            info_ubicacion.get("municipio_aplicado"),
+            info_ubicacion.get("estado_aplicado"),
+        ]
+        if valor_no_vacio(x)
+    )
+
+    if vista == "todos_cultivos":
+        if ranking_local is None or ranking_local.empty:
+            st.warning("No pude construir el ranking local para esta ubicación. Prueba otro sistema o usa el explorador avanzado.")
+            return
+
+        st.success(f"Estas son las opciones mejor posicionadas para {ubicacion_txt}.")
+
+        columnas = st.columns(min(3, len(ranking_local.head(3))))
+
+        for idx, (_, row) in enumerate(ranking_local.head(3).iterrows()):
+            valor = row.get("valor", 0)
+            color = color_escala(valor)
+            with columnas[idx % len(columnas)]:
+                st.markdown(
+                    f"""
+                    <div class="result-card" style="border-left-color:{color};">
+                        <h4>{html.escape(str(row.get("cultivo", "Cultivo")))}</h4>
+                        <p><b>Aptitud:</b> {valor} — {html.escape(str(row.get("clase", clase_valor(valor))))}</p>
+                        <p><b>Sistema:</b> {html.escape(str(row.get("escenario", ESCENARIOS.get(escenario_key, escenario_key))))}</p>
+                        <p><b>Limitante:</b> {html.escape(str(row.get("factor_legible", nombre_factor_legible(row.get("factor", "sin_dato")))))}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+        with st.expander("Ver más cultivos recomendados", expanded=False):
+            st.dataframe(
+                ranking_local.head(10).rename(columns={
+                    "cultivo": "Cultivo",
+                    "valor": "Aptitud",
+                    "clase": "Clase",
+                    "escenario": "Sistema / escenario",
+                    "factor_legible": "Limitante principal",
+                }),
+                width="stretch",
+                hide_index=True,
+            )
+
+    elif lectura == "aptitud" and vista == "un_cultivo":
+        st.success(f"Lectura para {cultivo_label} en {ubicacion_txt}.")
+        if comparacion_sistemas is not None and not comparacion_sistemas.empty:
+            mejor = comparacion_sistemas.iloc[0]
+            st.markdown(
+                f"""
+                <div class="result-card" style="border-left-color:{color_escala(mejor.get("aptitud_promedio", 0))};">
+                    <h4>{html.escape(str(cultivo_label))}</h4>
+                    <p><b>Escenario activo:</b> {html.escape(ESCENARIOS.get(escenario_key, escenario_key))}</p>
+                    <p><b>Mejor sistema promedio nacional:</b> {html.escape(str(mejor.get("sistema", "NA")))} ({mejor.get("aptitud_promedio", "NA")})</p>
+                    <p class="small-muted">La lectura sigue siendo municipal; revisa el mapa para ver la ubicación seleccionada.</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.caption("Revisa el mapa y la lectura rápida para interpretar el resultado municipal.")
+
+
+def render_consulta_guiada(cultivos_todos, ubicaciones):
+    render_tarjetas_inicio()
+
+    flujo = st.radio(
+        "¿Qué quieres hacer?",
+        [
+            "Recomendar cultivos para un lugar",
+            "Evaluar un cultivo específico",
+            "Comparar sistemas de cultivo",
+        ],
+        horizontal=True,
+        key="flujo_guiado_integrado",
+    )
+
+    estados = ubicaciones["estado"].dropna().sort_values().unique().tolist() if not ubicaciones.empty else ESTADOS_MEXICO
+
+    with st.form("form_consulta_guiada"):
+        c1, c2 = st.columns(2)
+
+        estado = c1.selectbox(
+            "Estado",
+            estados,
+            index=estados.index(st.session_state.get("estado_guia_integrada"))
+            if st.session_state.get("estado_guia_integrada") in estados else 0,
+            key="estado_guia_widget",
+        )
+
+        municipios_estado = (
+            ubicaciones.loc[ubicaciones["estado"] == estado, "municipio"]
+            .dropna()
+            .sort_values()
+            .unique()
+            .tolist()
+            if not ubicaciones.empty else []
+        )
+
+        municipio = c2.selectbox(
+            "Municipio",
+            municipios_estado or ["Selecciona un municipio"],
+            key="municipio_guia_widget",
+        )
+
+        cultivo = None
+
+        if flujo in ["Evaluar un cultivo específico", "Comparar sistemas de cultivo"]:
+            cultivo = st.selectbox(
+                "Cultivo",
+                cultivos_todos,
+                key="cultivo_guia_widget",
+            )
+
+        espacio = st.radio(
+            "¿Dónde se realizará el cultivo?",
+            [
+                "No estoy segura",
+                "Suelo o patio exterior",
+                "Azotea ligera",
+                "Azotea con camas o contenedores",
+                "Muro o jardín vertical",
+                "Invernadero",
+                "Espacio interior con luz artificial",
+            ],
+            horizontal=False,
+            key="espacio_guia_widget",
+        )
+
+        aplicar = st.form_submit_button("Ver recomendación", type="primary", width="stretch")
+
+    if aplicar:
+        escenario = sistema_desde_espacio_guiado(espacio)
+        st.session_state["estado_guia_integrada"] = estado
+        st.session_state["municipio_guia_integrada"] = municipio
+        aplicar_ubicacion_guiada(estado, municipio)
+
+        st.session_state["lectura_integrada"] = "aptitud"
+        st.session_state["escenario_integrado"] = escenario
+        st.session_state["color_integrado"] = "Índice de aptitud"
+
+        if flujo == "Recomendar cultivos para un lugar":
+            st.session_state["vista_integrada"] = "todos_cultivos"
+            st.session_state["cultivo_integrado"] = None
+        else:
+            st.session_state["vista_integrada"] = "un_cultivo"
+            st.session_state["cultivo_integrado"] = cultivo
+
+        if flujo == "Comparar sistemas de cultivo":
+            st.session_state["escenario_integrado"] = "todos_sistemas"
+
+        safe_rerun()
+
+
+# ============================================================
 # INICIO
 # ============================================================
 
@@ -3128,12 +3485,276 @@ cultivos_todos = sorted(list(set(cultivos_pdf + cultivos_aptitud)))
 
 
 # ============================================================
+# MODO DE USO / CONTROLES PRINCIPALES
+# ============================================================
+
+inyectar_estilos_ux()
+
+ubicaciones_disponibles = obtener_ubicaciones_desde_geojson(geojson_base)
+
+modo_uso = st.radio(
+    "Modo de uso",
+    ["Consulta guiada", "Explorador avanzado"],
+    key="modo_uso_selector_integrado",
+    index=(
+        1
+        if st.session_state.get("modo_uso_integrado") == "avanzada"
+        else 0
+    ),
+    horizontal=True,
+    help=(
+        "Consulta guiada simplifica la experiencia para usuarios nuevos. "
+        "Explorador avanzado conserva los controles técnicos del mapa."
+    ),
+)
+
+st.session_state["modo_uso_integrado"] = (
+    "avanzada" if modo_uso == "Explorador avanzado" else "guiada"
+)
+
+if st.session_state["modo_uso_integrado"] == "guiada":
+    render_tour_inicial()
+    render_consulta_guiada(cultivos_todos, ubicaciones_disponibles)
+
+
+# ============================================================
+# SIDEBAR
+# ============================================================
+
+if st.session_state["modo_uso_integrado"] == "guiada":
+    st.sidebar.header("Ayuda")
+
+    if st.sidebar.button("Ver tutorial otra vez", key="ver_tour_sidebar"):
+        st.session_state["tour_visto_integrado"] = False
+        safe_rerun()
+
+    st.sidebar.markdown("### Lectura rápida")
+    st.sidebar.write(
+        "Empieza por ubicación y objetivo. El mapa y las tablas se ajustan después "
+        "sin pedirte temperatura, precipitación, altitud o pH."
+    )
+
+    st.sidebar.markdown("### Fuente base")
+    st.sidebar.caption(PDF_CITA_BASE)
+
+    if st.session_state.get("usar_filtro_ubicacion_integrada", False):
+        ubicacion_activa = (
+            st.session_state.get("municipio_objetivo_integrado")
+            or st.session_state.get("estado_objetivo_integrado")
+            or st.session_state.get("lugar_mencionado_integrado")
+            or "ubicación detectada"
+        )
+        st.sidebar.warning(f"Ubicación activa: {ubicacion_activa}")
+
+        if st.sidebar.button(
+            "Mostrar todo México",
+            type="primary",
+            width="stretch",
+            key="quitar_ubicacion_principal_guiada",
+        ):
+            limpiar_ubicacion_chat()
+            safe_rerun()
+
+    usar_web_ia = False
+    lectura = st.session_state.get("lectura_integrada", "aptitud")
+    vista = st.session_state.get("vista_integrada", "todos_cultivos")
+    cultivo_label = st.session_state.get("cultivo_integrado")
+    escenario_key = st.session_state.get("escenario_integrado", "todos_sistemas")
+    modo_color = st.session_state.get("color_integrado", "Índice de aptitud")
+    alpha = 170
+
+    if vista == "un_cultivo" and cultivo_label not in cultivos_todos:
+        cultivo_label = cultivos_todos[0] if cultivos_todos else None
+        st.session_state["cultivo_integrado"] = cultivo_label
+
+    if vista not in ["un_cultivo", "todos_cultivos"]:
+        vista = "todos_cultivos"
+        st.session_state["vista_integrada"] = vista
+
+    if escenario_key not in ESCENARIOS:
+        escenario_key = "todos_sistemas"
+        st.session_state["escenario_integrado"] = escenario_key
+
+else:
+    st.sidebar.header("Explorador avanzado")
+
+    if not LLM_DISPONIBLE:
+        with st.sidebar.expander("Estado IA", expanded=False):
+            st.warning(
+                "La app funciona, pero la IA no está conectada. "
+                "Revisa `llm_openrouter.py` y `.streamlit/secrets.toml`."
+            )
+            st.code(LLM_ERROR_IMPORT or "Sin detalle.")
+    else:
+        with st.sidebar.expander("Estado IA", expanded=False):
+            st.success("LLM conectado.")
+            st.write("La IA interpreta la pregunta y redacta respuestas usando los datos del mapa.")
+
+    usar_web_ia = st.sidebar.checkbox(
+        "Buscar información complementaria en web",
+        value=False,
+        help=(
+            "Si está activo, la IA puede buscar fuentes externas sobre el cultivo. "
+            "Esto no cambia el mapa; solo complementa la respuesta y muestra fuentes."
+        )
+    )
+
+    with st.sidebar.expander("Fuente base", expanded=False):
+        st.markdown(PDF_CITA_BASE)
+        st.caption(
+            "Los rangos agroecológicos normalizados de los cultivos se basan en esta fuente documental. "
+            "El índice de aptitud, la comparación de sistemas y los escenarios de cultivo urbano "
+            "son capas de interpretación calculadas posteriormente."
+        )
+
+    with st.sidebar.expander("Acerca de la herramienta", expanded=False):
+        st.markdown(f"**Desarrollado por:** {APP_DESARROLLADORA}")
+        st.markdown(f"**Contacto:** {APP_CONTACTO}")
+        st.markdown(
+            "Esta app integra datos municipales, requerimientos agroecológicos de cultivos "
+            "y escenarios de cultivo urbano para apoyar la interpretación territorial de aptitud."
+        )
+        st.markdown(
+            "Los requerimientos agroecológicos base de los cultivos fueron normalizados "
+            "a partir de Ruiz Corral et al. (2020)."
+        )
+    lecturas_disponibles = []
+
+    if not indice_pdf.empty:
+        lecturas_disponibles.append("pdf")
+
+    if not indice_integrado[indice_integrado["lectura"] == "aptitud"].empty:
+        lecturas_disponibles.append("aptitud")
+
+    if st.session_state["lectura_integrada"] not in lecturas_disponibles:
+        st.session_state["lectura_integrada"] = lecturas_disponibles[0]
+
+    lectura = st.sidebar.radio(
+        "Tipo de lectura",
+        lecturas_disponibles,
+        format_func=lambda k: LECTURAS[k],
+        key="lectura_integrada",
+    )
+
+    vista = st.sidebar.radio(
+        "Vista",
+        ["un_cultivo", "todos_cultivos"],
+        format_func=lambda k: VISTAS[k],
+        key="vista_integrada",
+    )
+
+    cultivos_labels = obtener_cultivos_disponibles(indice_integrado, indice_pdf, lectura)
+
+    if not cultivos_labels and vista == "un_cultivo":
+        st.error("No hay cultivos disponibles para esta lectura.")
+        st.stop()
+
+    if vista == "un_cultivo":
+        if st.session_state["cultivo_integrado"] not in cultivos_labels:
+            st.session_state["cultivo_integrado"] = cultivos_labels[0]
+
+        cultivo_label = st.sidebar.selectbox(
+            "Cultivo",
+            cultivos_labels,
+            key="cultivo_integrado",
+        )
+    else:
+        cultivo_label = None
+        st.sidebar.info("La vista mostrará la mejor opción estimada por municipio.")
+
+    if lectura == "aptitud":
+        opciones_escenario = list(ESCENARIOS.keys())
+
+        if st.session_state["escenario_integrado"] not in opciones_escenario:
+            st.session_state["escenario_integrado"] = "solo"
+
+        escenario_key = st.sidebar.selectbox(
+            "Escenario de cultivo",
+            opciones_escenario,
+            format_func=lambda k: ESCENARIOS[k],
+            key="escenario_integrado",
+        )
+    else:
+        escenario_key = "pdf"
+
+    if lectura == "pdf":
+        opciones_color = ["Porcentaje de cumplimiento", "Factor limitante"]
+
+        if vista == "todos_cultivos":
+            opciones_color.append("Mejor opción estimada")
+    else:
+        opciones_color = ["Índice de aptitud", "Factor limitante"]
+
+        if vista == "todos_cultivos":
+            opciones_color.append("Mejor opción estimada")
+
+    if st.session_state["color_integrado"] not in opciones_color:
+        st.session_state["color_integrado"] = opciones_color[0]
+
+    modo_color = st.sidebar.radio(
+        "Colorear por",
+        opciones_color,
+        key="color_integrado",
+    )
+
+    alpha = st.sidebar.slider(
+        "Opacidad",
+        min_value=60,
+        max_value=230,
+        value=170,
+        step=10
+    )
+
+    st.sidebar.markdown("---")
+
+    if st.session_state.get("usar_filtro_ubicacion_integrada", False):
+        ubicacion_activa = (
+            st.session_state.get("municipio_objetivo_integrado")
+            or st.session_state.get("estado_objetivo_integrado")
+            or st.session_state.get("lugar_mencionado_integrado")
+            or "ubicación detectada"
+        )
+        st.sidebar.warning(f"Filtro de ubicación activo: {ubicacion_activa}")
+
+        if st.sidebar.button(
+            "Mostrar todo México",
+            type="primary",
+            width="stretch",
+            key="quitar_ubicacion_principal",
+        ):
+            limpiar_ubicacion_chat()
+            safe_rerun()
+
+    with st.sidebar.expander("Consulta detectada por IA", expanded=False):
+        if st.session_state.get("ultima_intencion_integrada"):
+            st.json(st.session_state["ultima_intencion_integrada"])
+        else:
+            st.write("Todavía no hay consulta.")
+
+    with st.sidebar.expander("Ubicación detectada", expanded=False):
+        if st.session_state.get("usar_filtro_ubicacion_integrada", False):
+            st.write("Estado:", st.session_state.get("estado_objetivo_integrado"))
+            st.write("Municipio:", st.session_state.get("municipio_objetivo_integrado"))
+            st.write("Lugar:", st.session_state.get("lugar_mencionado_integrado"))
+
+            if st.button("Quitar filtro de ubicación", key="quitar_ubicacion_detalle"):
+                limpiar_ubicacion_chat()
+                safe_rerun()
+        else:
+            st.write("No hay ubicación activa.")
+
+
+# ============================================================
 # CHAT
 # ============================================================
 
-pregunta_usuario = st.chat_input(
-    "Pregúntale al mapa. Ejemplo: ¿Qué puedo cultivar en una azotea intensiva? / Compara sistemas para lenteja"
+chat_placeholder = (
+    "Pregúntale al mapa o pide una explicación. Ejemplo: ¿por qué fresa sale media en CDMX?"
+    if st.session_state["modo_uso_integrado"] == "guiada"
+    else "Pregúntale al mapa. Ejemplo: ¿Qué puedo cultivar en una azotea intensiva? / Compara sistemas para lenteja"
 )
+
+pregunta_usuario = st.chat_input(chat_placeholder)
 
 if pregunta_usuario:
     with st.spinner("Interpretando tu pregunta..."):
@@ -3142,177 +3763,16 @@ if pregunta_usuario:
             cultivos_disponibles=cultivos_todos,
         )
 
-
-# ============================================================
-# SIDEBAR
-# ============================================================
-
-st.sidebar.header("Configuración del mapa")
-
-if not LLM_DISPONIBLE:
-    with st.sidebar.expander("Estado IA", expanded=True):
-        st.warning(
-            "La app funciona, pero la IA no está conectada. "
-            "Revisa `llm_openrouter.py` y `.streamlit/secrets.toml`."
-        )
-        st.code(LLM_ERROR_IMPORT or "Sin detalle.")
-else:
-    with st.sidebar.expander("Estado IA", expanded=False):
-        st.success("LLM conectado.")
-        st.write("La IA interpreta la pregunta y redacta respuestas usando los datos del mapa.")
-
-usar_web_ia = st.sidebar.checkbox(
-    "Buscar información complementaria en web",
-    value=False,
-    help=(
-        "Si está activo, la IA puede buscar fuentes externas sobre el cultivo. "
-        "Esto no cambia el mapa; solo complementa la respuesta y muestra fuentes."
+if (
+    st.session_state["modo_uso_integrado"] == "guiada"
+    and not st.session_state.get("usar_filtro_ubicacion_integrada", False)
+):
+    render_chat_historial()
+    st.info(
+        "Para empezar, selecciona estado y municipio en la consulta guiada. "
+        "Después verás la recomendación, el mapa y las descargas."
     )
-)
-
-with st.sidebar.expander("Fuente base", expanded=False):
-    st.markdown(PDF_CITA_BASE)
-    st.caption(
-        "Los rangos agroecológicos normalizados de los cultivos se basan en esta fuente documental. "
-        "El índice de aptitud, la comparación de sistemas y los escenarios de cultivo urbano "
-        "son capas de interpretación calculadas posteriormente."
-    )
-
-with st.sidebar.expander("Acerca de la herramienta", expanded=False):
-    st.markdown(f"**Desarrollado por:** {APP_DESARROLLADORA}")
-    st.markdown(f"**Contacto:** {APP_CONTACTO}")
-    st.markdown(
-        "Esta app integra datos municipales, requerimientos agroecológicos de cultivos "
-        "y escenarios de cultivo urbano para apoyar la interpretación territorial de aptitud."
-    )
-    st.markdown(
-        "Los requerimientos agroecológicos base de los cultivos fueron normalizados "
-        "a partir de Ruiz Corral et al. (2020)."
-    )
-lecturas_disponibles = []
-
-if not indice_pdf.empty:
-    lecturas_disponibles.append("pdf")
-
-if not indice_integrado[indice_integrado["lectura"] == "aptitud"].empty:
-    lecturas_disponibles.append("aptitud")
-
-if st.session_state["lectura_integrada"] not in lecturas_disponibles:
-    st.session_state["lectura_integrada"] = lecturas_disponibles[0]
-
-lectura = st.sidebar.radio(
-    "Tipo de lectura",
-    lecturas_disponibles,
-    format_func=lambda k: LECTURAS[k],
-    key="lectura_integrada",
-)
-
-vista = st.sidebar.radio(
-    "Vista",
-    ["un_cultivo", "todos_cultivos"],
-    format_func=lambda k: VISTAS[k],
-    key="vista_integrada",
-)
-
-cultivos_labels = obtener_cultivos_disponibles(indice_integrado, indice_pdf, lectura)
-
-if not cultivos_labels and vista == "un_cultivo":
-    st.error("No hay cultivos disponibles para esta lectura.")
     st.stop()
-
-if vista == "un_cultivo":
-    if st.session_state["cultivo_integrado"] not in cultivos_labels:
-        st.session_state["cultivo_integrado"] = cultivos_labels[0]
-
-    cultivo_label = st.sidebar.selectbox(
-        "Cultivo",
-        cultivos_labels,
-        key="cultivo_integrado",
-    )
-else:
-    cultivo_label = None
-    st.sidebar.info("La vista mostrará la mejor opción estimada por municipio.")
-
-if lectura == "aptitud":
-    opciones_escenario = list(ESCENARIOS.keys())
-
-    if st.session_state["escenario_integrado"] not in opciones_escenario:
-        st.session_state["escenario_integrado"] = "solo"
-
-    escenario_key = st.sidebar.selectbox(
-        "Escenario de cultivo",
-        opciones_escenario,
-        format_func=lambda k: ESCENARIOS[k],
-        key="escenario_integrado",
-    )
-else:
-    escenario_key = "pdf"
-
-if lectura == "pdf":
-    opciones_color = ["Porcentaje de cumplimiento", "Factor limitante"]
-
-    if vista == "todos_cultivos":
-        opciones_color.append("Mejor opción estimada")
-else:
-    opciones_color = ["Índice de aptitud", "Factor limitante"]
-
-    if vista == "todos_cultivos":
-        opciones_color.append("Mejor opción estimada")
-
-if st.session_state["color_integrado"] not in opciones_color:
-    st.session_state["color_integrado"] = opciones_color[0]
-
-modo_color = st.sidebar.radio(
-    "Colorear por",
-    opciones_color,
-    key="color_integrado",
-)
-
-alpha = st.sidebar.slider(
-    "Opacidad",
-    min_value=60,
-    max_value=230,
-    value=170,
-    step=10
-)
-
-st.sidebar.markdown("---")
-
-if st.session_state.get("usar_filtro_ubicacion_integrada", False):
-    ubicacion_activa = (
-        st.session_state.get("municipio_objetivo_integrado")
-        or st.session_state.get("estado_objetivo_integrado")
-        or st.session_state.get("lugar_mencionado_integrado")
-        or "ubicación detectada"
-    )
-    st.sidebar.warning(f"Filtro de ubicación activo: {ubicacion_activa}")
-
-    if st.sidebar.button(
-        "Mostrar todo México",
-        type="primary",
-        width="stretch",
-        key="quitar_ubicacion_principal",
-    ):
-        limpiar_ubicacion_chat()
-        safe_rerun()
-
-with st.sidebar.expander("Consulta detectada por IA", expanded=False):
-    if st.session_state.get("ultima_intencion_integrada"):
-        st.json(st.session_state["ultima_intencion_integrada"])
-    else:
-        st.write("Todavía no hay consulta.")
-
-with st.sidebar.expander("Ubicación detectada", expanded=False):
-    if st.session_state.get("usar_filtro_ubicacion_integrada", False):
-        st.write("Estado:", st.session_state.get("estado_objetivo_integrado"))
-        st.write("Municipio:", st.session_state.get("municipio_objetivo_integrado"))
-        st.write("Lugar:", st.session_state.get("lugar_mencionado_integrado"))
-
-        if st.button("Quitar filtro de ubicación", key="quitar_ubicacion_detalle"):
-            limpiar_ubicacion_chat()
-            safe_rerun()
-    else:
-        st.write("No hay ubicación activa.")
 
 
 # ============================================================
@@ -3398,37 +3858,42 @@ if info_ubicacion is not None and info_ubicacion.get("filas_resultantes", 0) > 0
 # FILTROS MANUALES
 # ============================================================
 
-with st.sidebar.expander("Filtros", expanded=False):
-    estados = sorted(df_mapa_ubicacion["estado"].dropna().unique().tolist()) if "estado" in df_mapa_ubicacion.columns else []
+if st.session_state["modo_uso_integrado"] == "avanzada":
+    with st.sidebar.expander("Filtros", expanded=False):
+        estados = sorted(df_mapa_ubicacion["estado"].dropna().unique().tolist()) if "estado" in df_mapa_ubicacion.columns else []
 
-    estados_sel = st.multiselect(
-        "Estados",
-        estados,
-        default=[],
-    )
+        estados_sel = st.multiselect(
+            "Estados",
+            estados,
+            default=[],
+        )
 
-    min_valor = st.slider(
-        "Valor mínimo",
-        min_value=0,
-        max_value=100,
-        value=0,
-        step=5,
-    )
+        min_valor = st.slider(
+            "Valor mínimo",
+            min_value=0,
+            max_value=100,
+            value=0,
+            step=5,
+        )
 
-    factores_disponibles = sorted(
-        df_mapa_ubicacion["_factor_mapa"]
-        .fillna("sin_dato")
-        .astype(str)
-        .unique()
-        .tolist()
-    )
+        factores_disponibles = sorted(
+            df_mapa_ubicacion["_factor_mapa"]
+            .fillna("sin_dato")
+            .astype(str)
+            .unique()
+            .tolist()
+        )
 
-    factores_sel = st.multiselect(
-        "Factores",
-        factores_disponibles,
-        default=[],
-        format_func=nombre_factor_legible,
-    )
+        factores_sel = st.multiselect(
+            "Factores",
+            factores_disponibles,
+            default=[],
+            format_func=nombre_factor_legible,
+        )
+else:
+    estados_sel = []
+    min_valor = 0
+    factores_sel = []
 
 df_filtrado = df_mapa_ubicacion.copy()
 
@@ -3460,6 +3925,16 @@ generar_respuesta_chat_si_pendiente(
     ranking_local=ranking_local,
     info_ubicacion=info_ubicacion,
     usar_web_ia=usar_web_ia,
+)
+
+render_resultados_guiados(
+    ranking_local=ranking_local,
+    info_ubicacion=info_ubicacion,
+    lectura=lectura,
+    vista=vista,
+    cultivo_label=cultivo_label,
+    escenario_key=escenario_key,
+    comparacion_sistemas=comparacion_sistemas,
 )
 
 render_chat_historial()
