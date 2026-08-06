@@ -196,6 +196,46 @@ ESTADOS_MEXICO = [
     "Zacatecas",
 ]
 
+NOMBRES_ESTADO_LEGIBLES = {
+    "BajaCalifornia": "Baja California",
+    "BajaCaliforniaSur": "Baja California Sur",
+    "DistritoFederal": "Ciudad de México",
+    "NuevoLeón": "Nuevo León",
+    "QuintanaRoo": "Quintana Roo",
+    "SanLuisPotosí": "San Luis Potosí",
+}
+
+NOMBRES_MUNICIPIO_LEGIBLES = {
+    "BenitoJuárez": "Benito Juárez",
+    "CuajimalpadeMorelos": "Cuajimalpa de Morelos",
+    "GustavoA.Madero": "Gustavo A. Madero",
+    "LaMagdalenaContreras": "La Magdalena Contreras",
+    "MiguelHidalgo": "Miguel Hidalgo",
+    "MilpaAlta": "Milpa Alta",
+    "VenustianoCarranza": "Venustiano Carranza",
+    "ÁlvaroObregón": "Álvaro Obregón",
+}
+
+ALIAS_ESTADOS = {
+    "cdmx": "DistritoFederal",
+    "ciudad de mexico": "DistritoFederal",
+    "ciudad mexico": "DistritoFederal",
+    "distrito federal": "DistritoFederal",
+    "distritofederal": "DistritoFederal",
+    "df": "DistritoFederal",
+    "d f": "DistritoFederal",
+    "baja california": "BajaCalifornia",
+    "bajacalifornia": "BajaCalifornia",
+    "baja california sur": "BajaCaliforniaSur",
+    "bajacaliforniasur": "BajaCaliforniaSur",
+    "nuevo leon": "NuevoLeón",
+    "nuevoleon": "NuevoLeón",
+    "quintana roo": "QuintanaRoo",
+    "quintanaroo": "QuintanaRoo",
+    "san luis potosi": "SanLuisPotosí",
+    "sanluispotosi": "SanLuisPotosí",
+}
+
 
 # ============================================================
 # UTILIDADES
@@ -215,6 +255,63 @@ def normalizar_columna(texto):
     texto = texto.replace(" ", "_")
     texto = re.sub(r"_+", "_", texto)
     return texto.strip("_")
+
+
+def nombre_estado_legible(estado):
+    if not valor_no_vacio(estado):
+        return ""
+
+    estado = str(estado)
+    return NOMBRES_ESTADO_LEGIBLES.get(estado, estado)
+
+
+def nombre_municipio_legible(municipio):
+    if not valor_no_vacio(municipio):
+        return ""
+
+    municipio = str(municipio)
+    return NOMBRES_MUNICIPIO_LEGIBLES.get(municipio, municipio)
+
+
+def resolver_alias_estado(estado):
+    if not valor_no_vacio(estado):
+        return None
+
+    estado_txt = str(estado)
+    estado_norm = normalizar_texto(estado_txt)
+
+    if estado_txt in NOMBRES_ESTADO_LEGIBLES:
+        return estado_txt
+
+    if estado_norm in ALIAS_ESTADOS:
+        return ALIAS_ESTADOS[estado_norm]
+
+    for estado_crudo, estado_legible in NOMBRES_ESTADO_LEGIBLES.items():
+        if normalizar_texto(estado_legible) == estado_norm:
+            return estado_crudo
+
+    return estado_txt
+
+
+def encontrar_estado_en_datos(opciones_estado, estado):
+    if not valor_no_vacio(estado):
+        return None
+
+    opciones = [str(o) for o in opciones_estado if valor_no_vacio(o)]
+    estado_resuelto = resolver_alias_estado(estado)
+
+    for candidato in [estado_resuelto, estado]:
+        match = encontrar_opcion_por_texto(opciones, candidato)
+        if match:
+            return match
+
+    estado_norm = normalizar_texto(estado)
+
+    for opcion in opciones:
+        if normalizar_texto(nombre_estado_legible(opcion)) == estado_norm:
+            return opcion
+
+    return None
 
 
 def valor_no_vacio(valor):
@@ -526,6 +623,7 @@ def cargar_tabla_ranking(ruta_tabla_str, estado_obj=None, municipio_obj=None):
     filtros = []
 
     if estado_obj:
+        estado_obj = resolver_alias_estado(estado_obj)
         filtros.append(("estado", "==", estado_obj))
 
     if municipio_obj:
@@ -887,10 +985,22 @@ def encontrar_opcion_por_texto(opciones, texto):
         if normalizar_texto(opcion) == texto_norm:
             return opcion
 
+    texto_compacto = texto_norm.replace(" ", "")
+
+    for opcion in opciones:
+        if normalizar_texto(opcion).replace(" ", "") == texto_compacto:
+            return opcion
+
     for opcion in opciones:
         opcion_norm = normalizar_texto(opcion)
+        opcion_compacta = opcion_norm.replace(" ", "")
 
-        if texto_norm in opcion_norm or opcion_norm in texto_norm:
+        if (
+            texto_norm in opcion_norm
+            or opcion_norm in texto_norm
+            or texto_compacto in opcion_compacta
+            or opcion_compacta in texto_compacto
+        ):
             return opcion
 
     return None
@@ -903,9 +1013,16 @@ def detectar_ubicacion_basica_desde_texto(pregunta):
     municipio = None
     lugar_mencionado = None
 
+    for alias_norm, estado_crudo in ALIAS_ESTADOS.items():
+        if alias_norm in pregunta_norm:
+            estado = estado_crudo
+            if estado_crudo == "DistritoFederal":
+                lugar_mencionado = "Ciudad de México"
+            break
+
     for estado_mx in ESTADOS_MEXICO:
         if normalizar_texto(estado_mx) in pregunta_norm:
-            estado = estado_mx
+            estado = resolver_alias_estado(estado_mx)
             break
 
     if "campus queretaro" in pregunta_norm or (
@@ -919,6 +1036,9 @@ def detectar_ubicacion_basica_desde_texto(pregunta):
         estado = estado or "Querétaro"
         municipio = municipio or "Querétaro"
         lugar_mencionado = "Querétaro"
+
+    if estado == "DistritoFederal":
+        lugar_mencionado = lugar_mencionado or "Ciudad de México"
 
     if "monterrey" in pregunta_norm:
         estado = estado or "Nuevo León"
@@ -1037,6 +1157,11 @@ def guardar_ubicacion_desde_intencion(pregunta, intencion):
     if not lugar_mencionado:
         lugar_mencionado = respaldo.get("lugar_mencionado")
 
+    estado = resolver_alias_estado(estado)
+
+    if estado == "DistritoFederal" and not lugar_mencionado:
+        lugar_mencionado = "Ciudad de México"
+
     if estado or municipio:
         st.session_state["usar_filtro_ubicacion_integrada"] = True
         st.session_state["estado_objetivo_integrado"] = estado
@@ -1064,7 +1189,7 @@ def aplicar_filtro_ubicacion_chat(df):
     municipio_match = None
 
     if estado_obj and "estado" in df_filtrado.columns:
-        estado_match = encontrar_opcion_por_texto(
+        estado_match = encontrar_estado_en_datos(
             df_filtrado["estado"].dropna().unique().tolist(),
             estado_obj
         )
@@ -1085,6 +1210,7 @@ def aplicar_filtro_ubicacion_chat(df):
         "estado_objetivo": estado_obj,
         "municipio_objetivo": municipio_obj,
         "estado_aplicado": estado_match,
+        "estado_aplicado_legible": nombre_estado_legible(estado_match),
         "municipio_aplicado": municipio_match,
         "lugar_mencionado": lugar_obj,
         "filas_resultantes": len(df_filtrado),
@@ -1825,14 +1951,19 @@ def respuesta_recomendacion_local(ranking_local, info_ubicacion, escenario_key, 
             "Puedes probar cambiando el escenario o revisando que los archivos precalculados estén actualizados."
         )
 
-    estado = info_ubicacion.get("estado_aplicado") or info_ubicacion.get("estado_objetivo") or ""
+    estado = (
+        info_ubicacion.get("estado_aplicado_legible")
+        or nombre_estado_legible(info_ubicacion.get("estado_aplicado"))
+        or nombre_estado_legible(info_ubicacion.get("estado_objetivo"))
+        or ""
+    )
     municipio = info_ubicacion.get("municipio_aplicado") or info_ubicacion.get("municipio_objetivo") or ""
     lugar = info_ubicacion.get("lugar_mencionado") or ""
 
     partes = []
 
     if municipio:
-        partes.append(str(municipio))
+        partes.append(nombre_municipio_legible(municipio))
 
     if estado:
         partes.append(str(estado))
@@ -3195,10 +3326,11 @@ def obtener_ubicaciones_desde_geojson(geojson_base):
 
 
 def aplicar_ubicacion_guiada(estado, municipio):
+    estado = resolver_alias_estado(estado)
     st.session_state["usar_filtro_ubicacion_integrada"] = True
     st.session_state["estado_objetivo_integrado"] = estado
     st.session_state["municipio_objetivo_integrado"] = municipio
-    st.session_state["lugar_mencionado_integrado"] = municipio
+    st.session_state["lugar_mencionado_integrado"] = nombre_municipio_legible(municipio) or nombre_estado_legible(estado)
     st.session_state["requiere_ubicacion_integrada"] = False
     st.session_state["consulta_pendiente_integrada"] = None
 
@@ -3274,8 +3406,9 @@ def render_resultados_guiados(ranking_local, info_ubicacion, lectura, vista, cul
     ubicacion_txt = ", ".join(
         str(x)
         for x in [
-            info_ubicacion.get("municipio_aplicado"),
-            info_ubicacion.get("estado_aplicado"),
+            nombre_municipio_legible(info_ubicacion.get("municipio_aplicado")),
+            info_ubicacion.get("estado_aplicado_legible")
+            or nombre_estado_legible(info_ubicacion.get("estado_aplicado")),
         ]
         if valor_no_vacio(x)
     )
@@ -3351,16 +3484,33 @@ def render_consulta_guiada(cultivos_todos, ubicaciones):
         key="flujo_guiado_integrado",
     )
 
-    estados = ubicaciones["estado"].dropna().sort_values().unique().tolist() if not ubicaciones.empty else ESTADOS_MEXICO
+    estados = (
+        sorted(
+            ubicaciones["estado"].dropna().unique().tolist(),
+            key=lambda e: normalizar_texto(nombre_estado_legible(e)),
+        )
+        if not ubicaciones.empty else ESTADOS_MEXICO
+    )
 
     with st.form("form_consulta_guiada"):
         c1, c2 = st.columns(2)
 
+        estado_guardado = resolver_alias_estado(
+            st.session_state.get("estado_guia_integrada")
+            or st.session_state.get("estado_guia_widget")
+        )
+
+        if "estado_guia_widget" in st.session_state:
+            estado_widget_resuelto = resolver_alias_estado(st.session_state["estado_guia_widget"])
+            if estado_widget_resuelto in estados:
+                st.session_state["estado_guia_widget"] = estado_widget_resuelto
+
         estado = c1.selectbox(
             "Estado",
             estados,
-            index=estados.index(st.session_state.get("estado_guia_integrada"))
-            if st.session_state.get("estado_guia_integrada") in estados else 0,
+            index=estados.index(estado_guardado)
+            if estado_guardado in estados else 0,
+            format_func=nombre_estado_legible,
             key="estado_guia_widget",
         )
 
@@ -3376,7 +3526,13 @@ def render_consulta_guiada(cultivos_todos, ubicaciones):
         municipio = c2.selectbox(
             "Municipio",
             municipios_estado or ["Selecciona un municipio"],
-            key="municipio_guia_widget",
+            index=(
+                municipios_estado.index(st.session_state.get("municipio_guia_integrada"))
+                if st.session_state.get("municipio_guia_integrada") in municipios_estado
+                else 0
+            ),
+            format_func=nombre_municipio_legible,
+            key=f"municipio_guia_widget_{normalizar_columna(estado)}",
         )
 
         cultivo = None
@@ -3539,8 +3695,8 @@ if st.session_state["modo_uso_integrado"] == "guiada":
 
     if st.session_state.get("usar_filtro_ubicacion_integrada", False):
         ubicacion_activa = (
-            st.session_state.get("municipio_objetivo_integrado")
-            or st.session_state.get("estado_objetivo_integrado")
+            nombre_municipio_legible(st.session_state.get("municipio_objetivo_integrado"))
+            or nombre_estado_legible(st.session_state.get("estado_objetivo_integrado"))
             or st.session_state.get("lugar_mencionado_integrado")
             or "ubicación detectada"
         )
@@ -3709,8 +3865,8 @@ else:
 
     if st.session_state.get("usar_filtro_ubicacion_integrada", False):
         ubicacion_activa = (
-            st.session_state.get("municipio_objetivo_integrado")
-            or st.session_state.get("estado_objetivo_integrado")
+            nombre_municipio_legible(st.session_state.get("municipio_objetivo_integrado"))
+            or nombre_estado_legible(st.session_state.get("estado_objetivo_integrado"))
             or st.session_state.get("lugar_mencionado_integrado")
             or "ubicación detectada"
         )
@@ -3733,8 +3889,8 @@ else:
 
     with st.sidebar.expander("Ubicación detectada", expanded=False):
         if st.session_state.get("usar_filtro_ubicacion_integrada", False):
-            st.write("Estado:", st.session_state.get("estado_objetivo_integrado"))
-            st.write("Municipio:", st.session_state.get("municipio_objetivo_integrado"))
+            st.write("Estado:", nombre_estado_legible(st.session_state.get("estado_objetivo_integrado")))
+            st.write("Municipio:", nombre_municipio_legible(st.session_state.get("municipio_objetivo_integrado")))
             st.write("Lugar:", st.session_state.get("lugar_mencionado_integrado"))
 
             if st.button("Quitar filtro de ubicación", key="quitar_ubicacion_detalle"):
@@ -3805,13 +3961,16 @@ df_mapa_ubicacion, info_ubicacion = aplicar_filtro_ubicacion_chat(df_mapa)
 if info_ubicacion is not None:
     if info_ubicacion["filas_resultantes"] > 0:
         lugar = info_ubicacion.get("lugar_mencionado") or ""
-        estado_aplicado = info_ubicacion.get("estado_aplicado")
+        estado_aplicado = (
+            info_ubicacion.get("estado_aplicado_legible")
+            or nombre_estado_legible(info_ubicacion.get("estado_aplicado"))
+        )
         municipio_aplicado = info_ubicacion.get("municipio_aplicado")
 
         partes = []
 
         if municipio_aplicado:
-            partes.append(str(municipio_aplicado))
+            partes.append(nombre_municipio_legible(municipio_aplicado))
 
         if estado_aplicado:
             partes.append(str(estado_aplicado))
@@ -3866,6 +4025,7 @@ if st.session_state["modo_uso_integrado"] == "avanzada":
             "Estados",
             estados,
             default=[],
+            format_func=nombre_estado_legible,
         )
 
         min_valor = st.slider(
@@ -4110,11 +4270,12 @@ with col_mapa:
         st.pydeck_chart(deck, width="stretch")
 
         if estados_sel:
-            cobertura_exportacion = ", ".join(estados_sel)
+            cobertura_exportacion = ", ".join(nombre_estado_legible(estado) for estado in estados_sel)
         elif info_ubicacion is not None and info_ubicacion.get("filas_resultantes", 0) > 0:
             cobertura_partes = [
-                info_ubicacion.get("municipio_aplicado"),
-                info_ubicacion.get("estado_aplicado"),
+                nombre_municipio_legible(info_ubicacion.get("municipio_aplicado")),
+                info_ubicacion.get("estado_aplicado_legible")
+                or nombre_estado_legible(info_ubicacion.get("estado_aplicado")),
             ]
             cobertura_exportacion = ", ".join(
                 str(parte) for parte in cobertura_partes if parte
