@@ -3492,74 +3492,80 @@ def render_consulta_guiada(cultivos_todos, ubicaciones):
         if not ubicaciones.empty else ESTADOS_MEXICO
     )
 
-    with st.form("form_consulta_guiada"):
-        c1, c2 = st.columns(2)
+    c1, c2 = st.columns(2)
 
-        estado_guardado = resolver_alias_estado(
-            st.session_state.get("estado_guia_integrada")
-            or st.session_state.get("estado_guia_widget")
+    estado_guardado = resolver_alias_estado(
+        st.session_state.get("estado_guia_integrada")
+        or st.session_state.get("estado_guia_widget")
+    )
+
+    if "estado_guia_widget" in st.session_state:
+        estado_widget_resuelto = resolver_alias_estado(st.session_state["estado_guia_widget"])
+        if estado_widget_resuelto in estados:
+            st.session_state["estado_guia_widget"] = estado_widget_resuelto
+
+    estado = c1.selectbox(
+        "Estado",
+        estados,
+        index=estados.index(estado_guardado)
+        if estado_guardado in estados else 0,
+        format_func=nombre_estado_legible,
+        key="estado_guia_widget",
+        help="Al cambiar el estado, la lista de municipios se actualiza automáticamente.",
+    )
+
+    municipios_estado = (
+        ubicaciones.loc[ubicaciones["estado"] == estado, "municipio"]
+        .dropna()
+        .sort_values()
+        .unique()
+        .tolist()
+        if not ubicaciones.empty else []
+    )
+
+    municipio = c2.selectbox(
+        "Municipio / alcaldía",
+        municipios_estado or ["Selecciona un municipio"],
+        index=(
+            municipios_estado.index(st.session_state.get("municipio_guia_integrada"))
+            if st.session_state.get("municipio_guia_integrada") in municipios_estado
+            else 0
+        ),
+        format_func=nombre_municipio_legible,
+        key=f"municipio_guia_widget_{normalizar_columna(estado)}",
+    )
+
+    if municipios_estado:
+        st.caption(
+            f"Mostrando {len(municipios_estado)} municipios/alcaldías de "
+            f"{nombre_estado_legible(estado)}."
         )
 
-        if "estado_guia_widget" in st.session_state:
-            estado_widget_resuelto = resolver_alias_estado(st.session_state["estado_guia_widget"])
-            if estado_widget_resuelto in estados:
-                st.session_state["estado_guia_widget"] = estado_widget_resuelto
+    cultivo = None
 
-        estado = c1.selectbox(
-            "Estado",
-            estados,
-            index=estados.index(estado_guardado)
-            if estado_guardado in estados else 0,
-            format_func=nombre_estado_legible,
-            key="estado_guia_widget",
+    if flujo in ["Evaluar un cultivo específico", "Comparar sistemas de cultivo"]:
+        cultivo = st.selectbox(
+            "Cultivo",
+            cultivos_todos,
+            key="cultivo_guia_widget",
         )
 
-        municipios_estado = (
-            ubicaciones.loc[ubicaciones["estado"] == estado, "municipio"]
-            .dropna()
-            .sort_values()
-            .unique()
-            .tolist()
-            if not ubicaciones.empty else []
-        )
+    espacio = st.radio(
+        "¿Dónde se realizará el cultivo?",
+        [
+            "No estoy segura",
+            "Suelo o patio exterior",
+            "Azotea ligera",
+            "Azotea con camas o contenedores",
+            "Muro o jardín vertical",
+            "Invernadero",
+            "Espacio interior con luz artificial",
+        ],
+        horizontal=False,
+        key="espacio_guia_widget",
+    )
 
-        municipio = c2.selectbox(
-            "Municipio",
-            municipios_estado or ["Selecciona un municipio"],
-            index=(
-                municipios_estado.index(st.session_state.get("municipio_guia_integrada"))
-                if st.session_state.get("municipio_guia_integrada") in municipios_estado
-                else 0
-            ),
-            format_func=nombre_municipio_legible,
-            key=f"municipio_guia_widget_{normalizar_columna(estado)}",
-        )
-
-        cultivo = None
-
-        if flujo in ["Evaluar un cultivo específico", "Comparar sistemas de cultivo"]:
-            cultivo = st.selectbox(
-                "Cultivo",
-                cultivos_todos,
-                key="cultivo_guia_widget",
-            )
-
-        espacio = st.radio(
-            "¿Dónde se realizará el cultivo?",
-            [
-                "No estoy segura",
-                "Suelo o patio exterior",
-                "Azotea ligera",
-                "Azotea con camas o contenedores",
-                "Muro o jardín vertical",
-                "Invernadero",
-                "Espacio interior con luz artificial",
-            ],
-            horizontal=False,
-            key="espacio_guia_widget",
-        )
-
-        aplicar = st.form_submit_button("Ver recomendación", type="primary", width="stretch")
+    aplicar = st.button("Ver recomendación", type="primary", width="stretch", key="aplicar_consulta_guiada")
 
     if aplicar:
         escenario = sistema_desde_espacio_guiado(espacio)
