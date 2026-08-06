@@ -3513,6 +3513,10 @@ def render_panel_robustez_modelo(df_mapa, lectura, vista, cultivo_label, escenar
     df["score_factor_limitante"] = pd.to_numeric(df["score_factor_limitante"], errors="coerce")
     df["_valor_mapa_num"] = pd.to_numeric(df["_valor_mapa"], errors="coerce")
 
+    for col in ["boolean_estricto", "boolean_promedio", "weighted_overlay_boolean"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
     df_eval = df.dropna(subset=["score_ponderado_fuzzy", "score_factor_limitante", "_valor_mapa_num"]).copy()
 
     if df_eval.empty:
@@ -3555,20 +3559,46 @@ def render_panel_robustez_modelo(df_mapa, lectura, vista, cultivo_label, escenar
         "que podría quedar oculta por otros criterios altos."
     )
 
+    modelos = []
+
+    for col, nombre in [
+        ("boolean_estricto", "Boolean estricto"),
+        ("boolean_promedio", "Boolean promedio"),
+        ("weighted_overlay_boolean", "Weighted overlay Boolean"),
+        ("score_ponderado_fuzzy", "Fuzzy ponderado / MCDA continuo"),
+        ("_valor_mapa_num", "Fuzzy híbrido actual"),
+        ("score_alpha_simulado", f"Fuzzy con \u03b1 simulado = {alpha_sel:.2f}"),
+    ]:
+        if col not in df_eval.columns:
+            continue
+
+        valores = pd.to_numeric(df_eval[col], errors="coerce").dropna()
+
+        if valores.empty:
+            continue
+
+        modelos.append({
+            "Modelo": nombre,
+            "Promedio": formato_valor(valores.mean()),
+            "Mediana": formato_valor(valores.median()),
+            "Municipios >=75": int((valores >= 75).sum()),
+            "Municipios >=90": int((valores >= 90).sum()),
+            "Spearman vs actual": (
+                formato_valor(valores.corr(df_eval.loc[valores.index, "_valor_mapa_num"], method="spearman"))
+                if col != "_valor_mapa_num" else "1.0"
+            ),
+        })
+
+    st.dataframe(pd.DataFrame(modelos), width="stretch", hide_index=True)
+
     resumen_alpha = pd.DataFrame({
         "Indicador": [
-            "Promedio fuzzy ponderado",
             "Promedio factor más limitante",
-            "Promedio modelo actual",
-            f"Promedio con \u03b1 simulado = {alpha_sel:.2f}",
             "Diferencia media: actual - fuzzy ponderado",
             "Diferencia media: simulado - actual",
         ],
         "Valor": [
-            formato_valor(df_eval["score_ponderado_fuzzy"].mean()),
             formato_valor(df_eval["score_factor_limitante"].mean()),
-            formato_valor(df_eval["_valor_mapa_num"].mean()),
-            formato_valor(df_eval["score_alpha_simulado"].mean()),
             formato_valor(diferencia_limitante.mean()),
             formato_valor(diferencia_alpha.mean()),
         ],
@@ -3583,6 +3613,9 @@ def render_panel_robustez_modelo(df_mapa, lectura, vista, cultivo_label, escenar
         "_escenario_mapa",
         "score_ponderado_fuzzy",
         "score_factor_limitante",
+        "boolean_estricto",
+        "boolean_promedio",
+        "weighted_overlay_boolean",
         "_valor_mapa_num",
         "score_alpha_simulado",
         "_factor_mapa",
