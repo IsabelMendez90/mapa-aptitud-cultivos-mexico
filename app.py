@@ -3508,6 +3508,18 @@ def render_panel_robustez_modelo(df_mapa, lectura, vista, cultivo_label, escenar
         )
         return
 
+    def correlacion_spearman_simple(a, b):
+        x = pd.to_numeric(a, errors="coerce")
+        y = pd.to_numeric(b, errors="coerce")
+        valido = x.notna() & y.notna()
+
+        if int(valido.sum()) < 2:
+            return None
+
+        return x[valido].rank(method="average").corr(
+            y[valido].rank(method="average")
+        )
+
     df = df_mapa.copy()
     df["score_ponderado_fuzzy"] = pd.to_numeric(df["score_ponderado_fuzzy"], errors="coerce")
     df["score_factor_limitante"] = pd.to_numeric(df["score_factor_limitante"], errors="coerce")
@@ -3584,7 +3596,12 @@ def render_panel_robustez_modelo(df_mapa, lectura, vista, cultivo_label, escenar
             "Municipios >=75": int((valores >= 75).sum()),
             "Municipios >=90": int((valores >= 90).sum()),
             "Spearman vs actual": (
-                formato_valor(valores.corr(df_eval.loc[valores.index, "_valor_mapa_num"], method="spearman"))
+                formato_valor(
+                    correlacion_spearman_simple(
+                        valores,
+                        df_eval.loc[valores.index, "_valor_mapa_num"],
+                    )
+                )
                 if col != "_valor_mapa_num" else "1.0"
             ),
         })
