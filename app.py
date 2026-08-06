@@ -3382,7 +3382,7 @@ def render_tarjetas_inicio():
 
 def sistema_desde_espacio_guiado(espacio):
     mapa = {
-        "No estoy segura": "todos_sistemas",
+        "No estoy segura/o": "todos_sistemas",
         "Suelo o patio exterior": "cielo_abierto",
         "Azotea ligera": "azotea_extensiva",
         "Azotea con camas o contenedores": "azotea_intensiva",
@@ -3470,6 +3470,140 @@ def render_resultados_guiados(ranking_local, info_ubicacion, lectura, vista, cul
             st.caption("Revisa el mapa y la lectura rápida para interpretar el resultado municipal.")
 
 
+def render_panel_robustez_modelo(df_mapa, lectura, vista, cultivo_label, escenario_key):
+    if lectura != "aptitud":
+        st.info("El panel de robustez aplica al índice de aptitud. Cambia la lectura a índice de aptitud para revisarlo.")
+        return
+
+    st.markdown("### Robustez y comparación metodológica")
+    st.caption(
+        "Este panel está pensado para revisión científica. No cambia las recomendaciones de la app; "
+        "ayuda a documentar qué aporta cada componente del modelo."
+    )
+
+    columnas = set(df_mapa.columns)
+    tiene_ablation = {
+        "score_ponderado_fuzzy",
+        "score_factor_limitante",
+    }.issubset(columnas)
+
+    if not tiene_ablation:
+        st.warning(
+            "Los archivos precalculados actuales no incluyen las columnas necesarias para una ablation completa "
+            "(`score_ponderado_fuzzy` y `score_factor_limitante`)."
+        )
+        st.markdown(
+            """
+            Con esas columnas se puede comparar directamente:
+
+            - fuzzy ponderado sin penalización por limitante;
+            - fuzzy híbrido con \u03b1 = 0.20;
+            - variantes de \u03b1;
+            - efecto de la compatibilidad urbana por sistema.
+
+            Para un benchmark Boolean / weighted overlay / MCDA completo, además conviene exportar los scores por variable
+            (`score_temperatura`, `score_precipitacion`, `score_altitud`, `score_latitud`, `score_ph`,
+            `score_luz`, `score_sustrato`) y los cumplimientos documentales equivalentes.
+            """
+        )
+        return
+
+    df = df_mapa.copy()
+    df["score_ponderado_fuzzy"] = pd.to_numeric(df["score_ponderado_fuzzy"], errors="coerce")
+    df["score_factor_limitante"] = pd.to_numeric(df["score_factor_limitante"], errors="coerce")
+    df["_valor_mapa_num"] = pd.to_numeric(df["_valor_mapa"], errors="coerce")
+
+    df_eval = df.dropna(subset=["score_ponderado_fuzzy", "score_factor_limitante", "_valor_mapa_num"]).copy()
+
+    if df_eval.empty:
+        st.warning("Las columnas de robustez existen, pero no contienen valores numéricos suficientes para esta vista.")
+        return
+
+    alpha_actual = 0.20
+    alpha_sel = st.slider(
+        "Simular coeficiente de factor limitante (\u03b1)",
+        min_value=0.0,
+        max_value=0.60,
+        value=alpha_actual,
+        step=0.05,
+        help=(
+            "\u03b1 = 0 equivale al fuzzy ponderado sin penalización. "
+            "Valores mayores acercan el resultado al factor más limitante."
+        ),
+        key=f"alpha_robustez_{normalizar_columna(str(cultivo_label))}_{escenario_key}",
+    )
+
+    df_eval["score_alpha_simulado"] = (
+        (1 - alpha_sel) * df_eval["score_ponderado_fuzzy"]
+        + alpha_sel * df_eval["score_factor_limitante"]
+    ).clip(0, 100)
+
+    diferencia_alpha = df_eval["score_alpha_simulado"] - df_eval["_valor_mapa_num"]
+    diferencia_limitante = df_eval["_valor_mapa_num"] - df_eval["score_ponderado_fuzzy"]
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Municipios evaluados", f"{len(df_eval):,}")
+    c2.metric("Fuzzy ponderado promedio", formato_valor(df_eval["score_ponderado_fuzzy"].mean()))
+    c3.metric("Modelo actual promedio", formato_valor(df_eval["_valor_mapa_num"].mean()))
+    c4.metric("\u0394 por \u03b1 simulado", formato_valor(diferencia_alpha.mean()))
+
+    st.markdown("#### Interpretación")
+    st.write(
+        "El fuzzy ponderado representa una agregación MCDA/weighted-sum continua sin corrección explícita "
+        "por el peor criterio. El modelo actual combina ese promedio con el score del factor más limitante. "
+        "Si el promedio actual baja respecto al fuzzy ponderado, la penalización está haciendo visible una restricción "
+        "que podría quedar oculta por otros criterios altos."
+    )
+
+    resumen_alpha = pd.DataFrame({
+        "Indicador": [
+            "Promedio fuzzy ponderado",
+            "Promedio factor más limitante",
+            "Promedio modelo actual",
+            f"Promedio con \u03b1 simulado = {alpha_sel:.2f}",
+            "Diferencia media: actual - fuzzy ponderado",
+            "Diferencia media: simulado - actual",
+        ],
+        "Valor": [
+            formato_valor(df_eval["score_ponderado_fuzzy"].mean()),
+            formato_valor(df_eval["score_factor_limitante"].mean()),
+            formato_valor(df_eval["_valor_mapa_num"].mean()),
+            formato_valor(df_eval["score_alpha_simulado"].mean()),
+            formato_valor(diferencia_limitante.mean()),
+            formato_valor(diferencia_alpha.mean()),
+        ],
+    })
+
+    st.dataframe(resumen_alpha, width="stretch", hide_index=True)
+
+    columnas_exportar = [
+        "estado",
+        "municipio",
+        "_cultivo_mapa",
+        "_escenario_mapa",
+        "score_ponderado_fuzzy",
+        "score_factor_limitante",
+        "_valor_mapa_num",
+        "score_alpha_simulado",
+        "_factor_mapa",
+    ]
+    columnas_exportar = [c for c in columnas_exportar if c in df_eval.columns]
+    df_export = df_eval[columnas_exportar].rename(columns={
+        "_cultivo_mapa": "cultivo",
+        "_escenario_mapa": "escenario",
+        "_valor_mapa_num": "score_modelo_actual",
+        "_factor_mapa": "factor_limitante",
+    })
+
+    st.download_button(
+        "Descargar tabla de robustez",
+        data=df_export.to_csv(index=False).encode("utf-8-sig"),
+        file_name="robustez_modelo_aptitud.csv",
+        mime="text/csv",
+        key="descargar_robustez_modelo",
+    )
+
+
 def render_consulta_guiada(cultivos_todos, ubicaciones):
     render_tarjetas_inicio()
 
@@ -3553,7 +3687,7 @@ def render_consulta_guiada(cultivos_todos, ubicaciones):
     espacio = st.radio(
         "¿Dónde se realizará el cultivo?",
         [
-            "No estoy segura",
+            "No estoy segura/o",
             "Suelo o patio exterior",
             "Azotea ligera",
             "Azotea con camas o contenedores",
@@ -4154,6 +4288,16 @@ if ranking_local is not None and not ranking_local.empty:
             }),
             width="stretch",
             hide_index=True
+        )
+
+if st.session_state["modo_uso_integrado"] == "avanzada":
+    with st.expander("Robustez y validación del modelo", expanded=False):
+        render_panel_robustez_modelo(
+            df_mapa=df_mapa_ubicacion,
+            lectura=lectura,
+            vista=vista,
+            cultivo_label=cultivo_label,
+            escenario_key=escenario_key,
         )
 
 
