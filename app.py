@@ -2033,11 +2033,39 @@ def inicializar_estado():
         "flujo_guiado_integrado": "Recomendar cultivos para un lugar",
         "estado_guia_integrada": None,
         "municipio_guia_integrada": None,
+        "controles_pendientes_chat_integrado": None,
     }
 
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
+
+
+def aplicar_controles_pendientes_chat():
+    """Aplica cambios solicitados por el chat antes de crear widgets.
+
+    Streamlit no permite modificar st.session_state para una llave asociada
+    a un widget después de que ese widget ya fue instanciado en el mismo
+    ciclo. El chat se procesa al final de la página, por lo que sus cambios
+    de lectura/vista/cultivo/escenario se guardan como pendientes y se aplican
+    al inicio del siguiente rerun.
+    """
+    pendientes = st.session_state.get("controles_pendientes_chat_integrado")
+
+    if not isinstance(pendientes, dict):
+        return
+
+    for key in [
+        "lectura_integrada",
+        "vista_integrada",
+        "escenario_integrado",
+        "color_integrado",
+        "cultivo_integrado",
+    ]:
+        if key in pendientes:
+            st.session_state[key] = pendientes[key]
+
+    st.session_state["controles_pendientes_chat_integrado"] = None
 
 
 def buscar_cultivo_en_lista(cultivos, texto_busqueda):
@@ -2287,13 +2315,17 @@ def procesar_pregunta_chat(pregunta, cultivos_disponibles):
         "cultivo": cultivo_encontrado,
     })
 
-    st.session_state["lectura_integrada"] = lectura
-    st.session_state["vista_integrada"] = vista
-    st.session_state["escenario_integrado"] = escenario
-    st.session_state["color_integrado"] = color
+    controles_pendientes = {
+        "lectura_integrada": lectura,
+        "vista_integrada": vista,
+        "escenario_integrado": escenario,
+        "color_integrado": color,
+    }
 
     if cultivo_encontrado is not None:
-        st.session_state["cultivo_integrado"] = cultivo_encontrado
+        controles_pendientes["cultivo_integrado"] = cultivo_encontrado
+
+    st.session_state["controles_pendientes_chat_integrado"] = controles_pendientes
 
     if st.session_state.get("requiere_ubicacion_integrada", False):
         st.session_state["consulta_pendiente_integrada"] = {
@@ -2313,6 +2345,7 @@ def procesar_pregunta_chat(pregunta, cultivos_disponibles):
     st.session_state["ultima_pregunta_integrada"] = pregunta_para_contexto
     st.session_state["respuesta_pendiente_integrada"] = True
     st.session_state["chat_integrado_historial"].append({"role": "user", "content": pregunta})
+    safe_rerun()
 
 
 def factores_frecuentes(df):
@@ -3779,6 +3812,7 @@ def render_consulta_guiada(cultivos_todos, ubicaciones):
 # ============================================================
 
 inicializar_estado()
+aplicar_controles_pendientes_chat()
 
 st.title("Mapa integrado de cultivos")
 
